@@ -1,0 +1,86 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Borrowers registered with the lending business
+// ─────────────────────────────────────────────────────────────
+model Client {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String?
+  email     String?
+  address   String?
+  idNumber  String? // national ID / passport / driver's licence
+  occupation String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  loans     Loan[]
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Loans — flat (fixed) interest, never compounding
+//  rateUnit "monthly" → totalInterest = principal × rate% × term
+//  rateUnit "term"    → totalInterest = principal × rate%
+// ─────────────────────────────────────────────────────────────
+model Loan {
+  id           String    @id @default(cuid())
+  reference    String    @unique // e.g. LN-2025-0042
+  clientId     String
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  principal    Float
+  interestRate Float
+  rateUnit     String // "monthly" | "term"
+  termMonths   Int
+  startDate    DateTime
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  payments     Payment[]
+
+  @@index([clientId])
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Payments received — allocation stored at record time:
+//  interestPart is applied first, principalPart reduces the loan
+// ─────────────────────────────────────────────────────────────
+model Payment {
+  id            String   @id @default(cuid())
+  loanId        String
+  loan          Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  amount        Float
+  interestPart  Float    @default(0)
+  principalPart Float    @default(0)
+  date          DateTime
+  method        String // cash | bank_transfer | mobile_money | check | other
+  note          String?
+  createdAt     DateTime @default(now())
+
+  @@index([loanId, date])
+  @@index([date])
+}
+
+// ─────────────────────────────────────────────────────────────
+//  Single-row application settings (business profile & defaults)
+// ─────────────────────────────────────────────────────────────
+model Setting {
+  id           String   @id @default("singleton")
+  businessName String   @default("Meridian Lending Co.")
+  tagline      String   @default("Private lending, managed with precision")
+  licence      String   @default("")
+  email        String   @default("")
+  phone        String   @default("")
+  address      String   @default("")
+  currency     String   @default("USD")
+  defaultRate  Float    @default(10)
+  rateUnit     String   @default("monthly")
+  defaultTerm  Int      @default(3)
+  updatedAt    DateTime @updatedAt
+}
