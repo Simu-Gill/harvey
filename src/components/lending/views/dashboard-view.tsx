@@ -5,14 +5,10 @@
 // that need attention.
 
 import {
-  AreaChart,
-  Area,
   Bar,
-  BarChart,
   CartesianGrid,
   Cell,
   ComposedChart,
-  Line,
   Pie,
   PieChart,
   ResponsiveContainer,
@@ -34,7 +30,8 @@ import {
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fmtAxis, fmtMoney, fmtDateShort, methodLabel } from "@/lib/format";
+import { fmtAxis, fmtMoney, fmtDateShort } from "@/lib/format";
+import { methodLabel } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import type { DashboardDTO, MonthPointDTO } from "@/lib/types";
 import { KpiCard } from "../kpi-card";
@@ -81,6 +78,18 @@ const STATUS_COLORS: Record<string, string> = {
   overdue: "var(--chart-3)",
   completed: "var(--chart-5)",
 };
+
+/** Round, human-friendly axis ticks (0, 4k, 8k, 12k …). */
+export function niceTicks(max: number, count = 4): number[] {
+  if (max <= 0) return [0];
+  const raw = max / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(raw)));
+  const norm = raw / mag;
+  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * mag;
+  const ticks: number[] = [];
+  for (let v = 0; v <= max + step * 0.01; v += step) ticks.push(Math.round(v * 100) / 100);
+  return ticks;
+}
 
 export function DashboardView() {
   const { data, isLoading } = useDashboard();
@@ -224,7 +233,7 @@ export function DashboardView() {
         <Card className="lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-[15px]">Collections &amp; Disbursements</CardTitle>
+              <CardTitle className="text-[15px]">Collections</CardTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Last 12 months · interest and principal split
               </p>
@@ -235,9 +244,6 @@ export function DashboardView() {
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="size-2.5 rounded-[3px] bg-[var(--chart-2)]" /> Interest
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="h-0.5 w-4 rounded-full bg-[var(--chart-5)]" /> Disbursed
               </span>
             </div>
           </CardHeader>
@@ -254,6 +260,7 @@ export function DashboardView() {
                     tickMargin={8}
                   />
                   <YAxis
+                    ticks={niceTicks(Math.max(...monthly.map((m) => m.collected), 0))}
                     tickFormatter={(v: number) => fmtAxis(v, currency)}
                     tickLine={false}
                     axisLine={false}
@@ -268,15 +275,6 @@ export function DashboardView() {
                   />
                   <Bar dataKey="principal" name="Principal" stackId="c" fill="var(--chart-1)" radius={[0, 0, 0, 0]} maxBarSize={26} />
                   <Bar dataKey="interest" name="Interest" stackId="c" fill="var(--chart-2)" radius={[3, 3, 0, 0]} maxBarSize={26} />
-                  <Line
-                    type="monotone"
-                    dataKey="disbursed"
-                    name="Disbursed"
-                    stroke="var(--chart-5)"
-                    strokeWidth={1.5}
-                    strokeDasharray="4 3"
-                    dot={false}
-                  />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
@@ -388,12 +386,12 @@ export function DashboardView() {
                           {p.loanReference} · {methodLabel(p.method)} · {fmtDateShort(p.date)}
                         </p>
                       </div>
-                      <div className="hidden text-right text-[11.5px] text-muted-foreground sm:block">
-                        <span className="tabular-nums text-amber-600 dark:text-amber-400">
+                      <div className="hidden text-right text-[12px] text-muted-foreground sm:block">
+                        <span className="tabular-nums font-medium text-amber-700 dark:text-amber-400">
                           {fmtMoney(p.interestPart, currency)}
                         </span>{" "}
                         int ·{" "}
-                        <span className="tabular-nums text-emerald-700 dark:text-emerald-400">
+                        <span className="tabular-nums font-medium text-emerald-700 dark:text-emerald-400">
                           {fmtMoney(p.principalPart, currency)}
                         </span>{" "}
                         prin

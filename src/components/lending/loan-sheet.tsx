@@ -34,7 +34,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { fmtDate, fmtMoney, methodLabel } from "@/lib/format";
+import { fmtDate, fmtMoney } from "@/lib/format";
+import { methodLabel } from "@/lib/types";
 import { Money } from "./money";
 import { StatusBadge } from "./status-badge";
 import { useApp } from "./store";
@@ -55,6 +56,7 @@ export function LoanSheet() {
       <SheetContent className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
         {isLoading || !loan ? (
           <div className="space-y-3 p-6">
+            <SheetTitle className="sr-only">Loading loan</SheetTitle>
             <div className="h-7 w-56 animate-pulse rounded bg-muted" />
             <div className="h-24 animate-pulse rounded-lg bg-muted" />
             <div className="h-40 animate-pulse rounded-lg bg-muted" />

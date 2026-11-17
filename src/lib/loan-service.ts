@@ -113,7 +113,7 @@ export async function getLoanDetail(id: string) {
       expectedCumulative: r.expectedCumulative,
     })),
     payments: loan.payments
-      .map(paymentToDTO)
+      .map((p) => paymentToDTO({ ...p, loan }))
       .sort((a, b) => b.date.localeCompare(a.date)),
   };
 }

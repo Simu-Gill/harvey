@@ -37,7 +37,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
-import { fmtDate, fmtDateShort, fmtMoney, methodLabel } from "@/lib/format";
+import { fmtDate, fmtDateShort, fmtMoney } from "@/lib/format";
+import { methodLabel } from "@/lib/types";
 import { ClientAvatar } from "./client-avatar";
 import { Money } from "./money";
 import { StatusBadge } from "./status-badge";
@@ -64,6 +65,7 @@ export function ClientSheet() {
         <SheetHeader className="space-y-0 border-b bg-muted/40 p-6">
           {isLoading || !client ? (
             <div className="space-y-2">
+              <SheetTitle className="sr-only">Loading client</SheetTitle>
               <div className="h-6 w-48 animate-pulse rounded bg-muted" />
               <div className="h-4 w-64 animate-pulse rounded bg-muted" />
             </div>

@@ -35,8 +35,6 @@ const TITLES: Record<View, { title: string; subtitle: string }> = {
 
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
   return (
     <Button
       variant="ghost"
@@ -45,7 +43,8 @@ function ThemeToggle() {
       className="text-muted-foreground"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
     >
-      {mounted && resolvedTheme === "dark" ? <Sun className="size-[17px]" /> : <Moon className="size-[17px]" />}
+      <Sun className="hidden size-[17px] dark:block" />
+      <Moon className="size-[17px] dark:hidden" />
     </Button>
   );
 }

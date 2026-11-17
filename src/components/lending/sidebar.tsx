@@ -49,14 +49,14 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
     <div className="flex h-full flex-col bg-[oklch(0.185_0.02_165)] text-stone-300">
       {/* Brand */}
       <div className="flex items-center gap-3 px-5 pt-6 pb-5">
-        <span className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/90 font-display text-[22px] font-semibold text-emerald-950 shadow-lg shadow-emerald-950/40">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/90 font-display text-[22px] font-semibold text-emerald-950 shadow-lg shadow-emerald-950/40">
           {(settings?.businessName ?? "M").charAt(0)}
         </span>
         <div className="min-w-0 leading-tight">
-          <p className="truncate font-display text-[17px] font-semibold text-stone-50">
+          <p className="truncate font-display text-[15px] font-semibold text-stone-50">
             {settings?.businessName ?? "Meridian Lending Co."}
           </p>
-          <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-emerald-300/70">
+          <p className="mt-0.5 text-[9.5px] font-medium uppercase tracking-[0.22em] text-emerald-300/70">
             Loan Management
           </p>
         </div>
