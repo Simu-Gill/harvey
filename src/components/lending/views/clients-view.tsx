@@ -24,6 +24,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fmtDateShort } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { ClientDTO } from "@/lib/types";
 import { ClientAvatar } from "../client-avatar";
 import { EmptyState } from "../empty-state";
@@ -77,21 +78,23 @@ export function ClientsView() {
       {/* stat chips */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
-          { label: "Total Clients", value: String(stats.total) },
-          { label: "With Active Loans", value: String(stats.active) },
-          { label: "Total Outstanding", value: <Money value={stats.outstanding} /> },
-          { label: "Behind / Overdue", value: String(stats.flagged) },
+          { label: "Total Clients", value: String(stats.total), tone: "text-foreground" },
+          { label: "With Active Loans", value: String(stats.active), tone: "text-emerald-700 dark:text-emerald-400" },
+          { label: "Total Outstanding", value: <Money value={stats.outstanding} />, tone: "text-foreground" },
+          { label: "Behind / Overdue", value: String(stats.flagged), tone: stats.flagged > 0 ? "text-red-600 dark:text-red-400" : "text-foreground" },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border bg-card p-4 shadow-xs">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          <div key={s.label} className="card-lux accent-top rounded-xl border bg-card p-4">
+            <p className="text-[10.5px] font-semibold tracking-[0.1em] text-muted-foreground uppercase">
               {s.label}
             </p>
-            <p className="mt-1.5 text-xl font-semibold tracking-tight">{s.value}</p>
+            <p className={cn("mt-2 font-display text-[22px] font-semibold leading-none tracking-tight", s.tone)}>
+              {s.value}
+            </p>
           </div>
         ))}
       </div>
 
-      <Card>
+      <Card className="card-lux">
         <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -143,7 +146,7 @@ export function ClientsView() {
           ) : (
             <div className="overflow-x-auto scrollbar-slim">
               <Table>
-                <TableHeader>
+                <TableHeader className="thead-lux">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="pl-6">Client</TableHead>
                     <TableHead className="hidden md:table-cell">Occupation</TableHead>
@@ -171,7 +174,7 @@ function ClientRow({ client, onOpen }: { client: ClientDTO; onOpen: () => void }
   return (
     <TableRow
       onClick={onOpen}
-      className="cursor-pointer"
+      className="group cursor-pointer transition-colors hover:bg-emerald-50/60 focus-visible:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06] dark:focus-visible:bg-emerald-500/[0.06]"
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
     >
@@ -209,10 +212,10 @@ function ClientRow({ client, onOpen }: { client: ClientDTO; onOpen: () => void }
       <TableCell className="hidden text-right text-[13px] text-muted-foreground sm:table-cell">
         {client.lastPaymentAt ? fmtDateShort(client.lastPaymentAt) : "—"}
       </TableCell>
-      <TableCell className="py-3 pr-6 text-right">
+      <TableCell className="py-3.5 pr-6 text-right">
         <span className="inline-flex items-center gap-1.5">
           <StatusBadge status={client.health} />
-          <ChevronRight className="size-4 text-muted-foreground" />
+          <ChevronRight className="size-4 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5" />
         </span>
       </TableCell>
     </TableRow>

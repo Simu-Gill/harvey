@@ -95,18 +95,18 @@ export function AppShell() {
             </Button>
 
             <div className="min-w-0 flex-1">
+              <p className="hidden text-[9.5px] font-semibold tracking-[0.16em] text-emerald-700/80 uppercase sm:block dark:text-emerald-400/80">
+                Meridian
+              </p>
               <h1 className="truncate font-display text-[19px] font-semibold leading-tight tracking-tight">
                 {t.title}
               </h1>
-              <p className="hidden truncate text-[12.5px] text-muted-foreground sm:block">
-                {t.subtitle}
-              </p>
             </div>
 
             <div className="flex items-center gap-1.5 sm:gap-2">
               <Button
                 onClick={() => useApp.getState().openPaymentDialog()}
-                className="h-9 gap-1.5 font-medium shadow-sm"
+                className="h-9 gap-1.5 bg-gradient-to-b from-emerald-500 to-emerald-600 font-medium shadow-md shadow-emerald-600/25 ring-1 ring-emerald-600/40 ring-inset transition-all hover:shadow-lg hover:shadow-emerald-600/30 hover:brightness-105 dark:from-emerald-500 dark:to-emerald-700 dark:shadow-emerald-900/40"
               >
                 <HandCoins className="size-4" aria-hidden />
                 <span className="hidden sm:inline">Record Payment</span>
@@ -115,7 +115,7 @@ export function AppShell() {
               <Button
                 variant="outline"
                 onClick={() => useApp.getState().openLoanDialog()}
-                className="h-9 gap-1.5 border-input font-medium"
+                className="h-9 gap-1.5 border-input bg-card/60 font-medium shadow-sm backdrop-blur hover:bg-card"
               >
                 <Landmark className="size-4" aria-hidden />
                 <span className="hidden md:inline">New Loan</span>
@@ -163,7 +163,8 @@ export function AppShell() {
               <span className="mx-2 text-border sm:hidden" aria-hidden>·</span>
               <span className="block sm:inline"> Loan Management System</span>
             </p>
-            <p className="tabular-nums">
+            <p className="flex items-center gap-2 tabular-nums">
+              <span className="pulse-dot text-emerald-500" aria-hidden />
               Confidential — internal use only
               {settings?.licence ? ` · ${settings.licence}` : ""}
             </p>

@@ -15,6 +15,7 @@ export function ClientAvatar({
       aria-hidden
       className={cn(
         "inline-flex size-9 shrink-0 select-none items-center justify-center rounded-full text-[13px] font-semibold",
+        "ring-2 ring-card shadow-sm",
         avatarHue(name),
         className
       )}

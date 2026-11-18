@@ -59,9 +59,10 @@ export function LoansView() {
 
   return (
     <div className="space-y-5">
-      <Card>
+      <Card className="card-lux">
         <div className="flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
+          <div className="-mx-1 overflow-x-auto px-1 pb-0.5 scrollbar-slim">
+            <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
             <TabsList className="h-9">
               {(
                 [
@@ -80,7 +81,8 @@ export function LoansView() {
                 </TabsTrigger>
               ))}
             </TabsList>
-          </Tabs>
+            </Tabs>
+          </div>
           <div className="relative flex-1 lg:max-w-xs">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -112,7 +114,7 @@ export function LoansView() {
           ) : (
             <div className="overflow-x-auto scrollbar-slim">
               <Table>
-                <TableHeader>
+                <TableHeader className="thead-lux">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="pl-6">Loan</TableHead>
                     <TableHead>Client</TableHead>
@@ -140,11 +142,11 @@ export function LoansView() {
 
 function LoanRow({ loan, onOpen }: { loan: LoanDTO; onOpen: () => void }) {
   return (
-    <TableRow onClick={onOpen} className="cursor-pointer" tabIndex={0}
+    <TableRow onClick={onOpen} className="group cursor-pointer transition-colors hover:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06]" tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
     >
       <TableCell className="py-3.5 pl-6">
-        <p className="font-mono text-[12px] font-medium">{loan.reference}</p>
+        <p className="font-mono text-[12px] font-semibold text-emerald-800 dark:text-emerald-400">{loan.reference}</p>
         <p className="text-[11.5px] text-muted-foreground">
           {fmtDateShort(loan.startDate)} · <Money value={loan.principal} />
         </p>
@@ -173,15 +175,15 @@ function LoanRow({ loan, onOpen }: { loan: LoanDTO; onOpen: () => void }) {
       </TableCell>
       <TableCell className="hidden w-32 pr-4 sm:table-cell">
         <div className="ml-auto flex items-center gap-2">
-          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted shadow-[inset_0_1px_2px_oklch(0_0_0/0.06)]">
             <div
               className={cn(
                 "h-full rounded-full",
                 loan.status === "overdue"
-                  ? "bg-red-500"
+                  ? "bg-gradient-to-r from-red-500 to-rose-500"
                   : loan.status === "behind"
-                    ? "bg-amber-500"
-                    : "bg-emerald-600 dark:bg-emerald-500"
+                    ? "bg-gradient-to-r from-amber-400 to-orange-500"
+                    : "bg-gradient-to-r from-emerald-500 to-teal-500"
               )}
               style={{ width: `${Math.round(loan.progress * 100)}%` }}
             />
@@ -194,7 +196,7 @@ function LoanRow({ loan, onOpen }: { loan: LoanDTO; onOpen: () => void }) {
       <TableCell className="py-3.5 pr-6 text-right">
         <span className="inline-flex items-center gap-1.5">
           <StatusBadge status={loan.status} />
-          <ChevronRight className="size-4 text-muted-foreground" />
+          <ChevronRight className="size-4 text-muted-foreground/60 transition-transform group-hover:translate-x-0.5" />
         </span>
       </TableCell>
     </TableRow>

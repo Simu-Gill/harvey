@@ -52,20 +52,25 @@ export function ReportsView() {
           { label: "Avg Monthly Rate", value: `${stats.weightedAvgMonthlyRate.toFixed(1)}%`, hint: "weighted by outstanding principal" },
           { label: "Largest Exposure", value: <Money value={stats.largestExposure} />, hint: `${Math.round(stats.largestShare * 100)}% of active book` },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border bg-card p-4 shadow-xs">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          <div key={s.label} className="card-lux accent-top rounded-xl border bg-card p-4">
+            <p className="text-[10.5px] font-semibold tracking-[0.1em] text-muted-foreground uppercase">
               {s.label}
             </p>
-            <p className="mt-1.5 text-xl font-semibold tracking-tight">{s.value}</p>
-            <p className="mt-1 text-[11.5px] text-muted-foreground">{s.hint}</p>
+            <p className="mt-2 font-display text-[22px] font-semibold leading-none tracking-tight">
+              {s.value}
+            </p>
+            <p className="mt-2 text-[11.5px] text-muted-foreground">{s.hint}</p>
           </div>
         ))}
       </div>
 
       {/* monthly table + chart */}
-      <Card>
+      <Card className="card-lux">
         <CardHeader>
-          <CardTitle className="text-[15px]">Monthly Performance</CardTitle>
+          <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
+            Performance
+          </p>
+          <CardTitle className="mt-0.5 text-[15px]">Monthly Performance</CardTitle>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Disbursements vs collections, last 12 months
           </p>
@@ -74,6 +79,12 @@ export function ReportsView() {
           <div className="h-[240px]">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthly} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradCollected" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="oklch(0.596 0.145 163)" />
+                    <stop offset="100%" stopColor="oklch(0.596 0.145 163 / 0.5)" />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="label" tickLine={false} axisLine={false} tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} tickMargin={8} />
                 <YAxis
@@ -95,7 +106,7 @@ export function ReportsView() {
                     ) : null
                   }
                 />
-                <Bar dataKey="collected" name="Collected" fill="var(--chart-1)" radius={[3, 3, 0, 0]} maxBarSize={22} />
+                <Bar dataKey="collected" name="Collected" fill="url(#gradCollected)" radius={[3, 3, 0, 0]} maxBarSize={22} />
                 <Bar dataKey="disbursed" name="Disbursed" fill="var(--chart-5)" radius={[3, 3, 0, 0]} maxBarSize={22} />
               </BarChart>
             </ResponsiveContainer>
@@ -142,9 +153,12 @@ export function ReportsView() {
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* aging */}
-        <Card>
+        <Card className="card-lux">
           <CardHeader>
-            <CardTitle className="text-[15px]">Aging — Active Book</CardTitle>
+            <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
+              Risk
+            </p>
+            <CardTitle className="mt-0.5 text-[15px]">Aging — Active Book</CardTitle>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Outstanding balance by how far past maturity
             </p>
@@ -180,9 +194,12 @@ export function ReportsView() {
         </Card>
 
         {/* concentration */}
-        <Card>
+        <Card className="card-lux">
           <CardHeader>
-            <CardTitle className="text-[15px]">Borrower Concentration</CardTitle>
+            <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
+              Concentration
+            </p>
+            <CardTitle className="mt-0.5 text-[15px]">Borrower Concentration</CardTitle>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Largest outstanding balances — click to open client
             </p>
@@ -205,7 +222,7 @@ export function ReportsView() {
                         <p className="truncate text-[13.5px] font-medium">{c.name}</p>
                         <div className="mt-1 h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-muted">
                           <div
-                            className="h-full rounded-full bg-emerald-600 dark:bg-emerald-500"
+                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
                             style={{ width: `${Math.round(c.share * 100)}%` }}
                           />
                         </div>

@@ -25,6 +25,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fmtMoney } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import { methodLabel, PAYMENT_METHODS } from "@/lib/types";
 import { EmptyState } from "../empty-state";
 import { Money } from "../money";
@@ -103,21 +104,23 @@ export function PaymentsView() {
       {/* summary strip */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {[
-          { label: "Payments Shown", value: String(totals.count) },
-          { label: "Total Collected", value: <Money value={totals.amount} className="text-emerald-700 dark:text-emerald-400" /> },
-          { label: "Interest Portion", value: <Money value={totals.interest} className="text-amber-700 dark:text-amber-400" /> },
-          { label: "Principal Portion", value: <Money value={totals.principal} /> },
+          { label: "Payments Shown", value: String(totals.count), tone: "text-foreground" },
+          { label: "Total Collected", value: <Money value={totals.amount} />, tone: "text-emerald-700 dark:text-emerald-400" },
+          { label: "Interest Portion", value: <Money value={totals.interest} />, tone: "text-amber-700 dark:text-amber-400" },
+          { label: "Principal Portion", value: <Money value={totals.principal} />, tone: "text-foreground" },
         ].map((s) => (
-          <div key={s.label} className="rounded-xl border bg-card p-4 shadow-xs">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+          <div key={s.label} className="card-lux accent-top rounded-xl border bg-card p-4">
+            <p className="text-[10.5px] font-semibold tracking-[0.1em] text-muted-foreground uppercase">
               {s.label}
             </p>
-            <p className="mt-1.5 text-xl font-semibold tracking-tight">{s.value}</p>
+            <p className={cn("mt-2 font-display text-[22px] font-semibold leading-none tracking-tight", s.tone)}>
+              {s.value}
+            </p>
           </div>
         ))}
       </div>
 
-      <Card>
+      <Card className="card-lux">
         <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -174,7 +177,7 @@ export function PaymentsView() {
           ) : (
             <div className="max-h-[640px] overflow-auto scrollbar-slim">
               <Table>
-                <TableHeader className="sticky top-0 z-10 bg-card after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-border">
+                <TableHeader className="thead-lux sticky top-0 z-10 bg-card after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-border">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="pl-6">Date</TableHead>
                     <TableHead>Client</TableHead>
@@ -191,7 +194,7 @@ export function PaymentsView() {
                     <TableRow
                       key={p.id}
                       onClick={() => openLoan(p.loanId)}
-                      className="cursor-pointer"
+                      className="cursor-pointer transition-colors hover:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06]"
                       tabIndex={0}
                       onKeyDown={(e) => e.key === "Enter" && openLoan(p.loanId)}
                     >
@@ -203,7 +206,9 @@ export function PaymentsView() {
                         {p.loanReference}
                       </TableCell>
                       <TableCell className="text-right text-[13.5px] font-semibold">
-                        <Money value={p.amount} />
+                        <span className="rounded-lg bg-emerald-50 px-2 py-1 font-display text-emerald-800 tabular-nums dark:bg-emerald-500/10 dark:text-emerald-300">
+                          <Money value={p.amount} />
+                        </span>
                       </TableCell>
                       <TableCell className="hidden text-right text-[12.5px] tabular-nums text-amber-700 dark:text-amber-400 md:table-cell">
                         {fmtMoney(p.interestPart)}
@@ -212,7 +217,7 @@ export function PaymentsView() {
                         {fmtMoney(p.principalPart)}
                       </TableCell>
                       <TableCell className="hidden lg:table-cell">
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                        <span className="rounded-full border bg-muted/40 px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
                           {methodLabel(p.method)}
                         </span>
                       </TableCell>

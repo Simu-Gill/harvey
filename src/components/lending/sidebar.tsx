@@ -46,10 +46,20 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const overdue = loans?.filter((l) => l.status === "overdue").length ?? 0;
 
   return (
-    <div className="flex h-full flex-col bg-[oklch(0.185_0.02_165)] text-stone-300">
+    <div className="relative flex h-full flex-col overflow-hidden bg-[oklch(0.185_0.02_165)] text-stone-300">
+      {/* atmospheric depth: emerald aurora at top + vignette at bottom */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[oklch(0.24_0.035_164)] via-transparent to-[oklch(0.13_0.02_168)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 left-1/2 h-56 w-[130%] -translate-x-1/2 rounded-full bg-emerald-500/[0.13] blur-3xl"
+      />
+
       {/* Brand */}
-      <div className="flex items-center gap-3 px-5 pt-6 pb-5">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-emerald-500/90 font-display text-[22px] font-semibold text-emerald-950 shadow-lg shadow-emerald-950/40">
+      <div className="relative flex items-center gap-3 px-5 pt-6 pb-5">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 font-display text-[22px] font-semibold text-emerald-950 shadow-lg shadow-emerald-950/50 ring-1 ring-emerald-300/40">
           {(settings?.businessName ?? "M").charAt(0)}
         </span>
         <div className="min-w-0 leading-tight">
@@ -82,33 +92,42 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       }}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "relative flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-[13.5px] font-medium transition-colors",
+                        "group relative flex w-full items-center gap-3 rounded-lg py-2 text-[13.5px] font-medium transition-all duration-150",
                         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/60",
                         active
-                          ? "bg-emerald-400/10 text-emerald-100"
+                          ? "bg-gradient-to-r from-emerald-400/[0.16] to-emerald-400/[0.03] text-emerald-50 shadow-[inset_0_1px_0_oklch(1_0_0/0.06)]"
                           : "text-stone-400 hover:bg-white/[0.05] hover:text-stone-100"
                       )}
                     >
                       {active && (
                         <span
                           aria-hidden
-                          className="absolute top-1.5 bottom-1.5 -left-1.5 w-[3px] rounded-full bg-emerald-400"
+                          className="absolute top-1.5 bottom-1.5 -left-1.5 w-[3px] rounded-full bg-gradient-to-b from-emerald-300 to-teal-500 shadow-[0_0_10px_oklch(0.696_0.17_162/0.8)]"
                         />
                       )}
-                      <Icon className="size-[17px] shrink-0" aria-hidden />
+                      <span
+                        className={cn(
+                          "flex size-7 shrink-0 items-center justify-center rounded-md transition-colors",
+                          active
+                            ? "bg-emerald-400/15 text-emerald-300"
+                            : "group-hover:bg-white/[0.06]"
+                        )}
+                      >
+                        <Icon className="size-[16px]" aria-hidden />
+                      </span>
                       <span className="flex-1 text-left">{item.label}</span>
                       {item.view === "loans" && activeLoans > 0 && (
-                        <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[11px] tabular-nums text-stone-300">
+                        <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[11px] tabular-nums text-stone-300 ring-1 ring-white/10">
                           {activeLoans}
                         </span>
                       )}
                       {item.view === "clients" && clients && (
-                        <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[11px] tabular-nums text-stone-300">
+                        <span className="rounded-full bg-white/[0.07] px-2 py-0.5 text-[11px] tabular-nums text-stone-300 ring-1 ring-white/10">
                           {clients.length}
                         </span>
                       )}
                       {item.view === "payments" && overdue > 0 && (
-                        <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] tabular-nums text-red-300">
+                        <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] tabular-nums text-red-300 ring-1 ring-red-400/20">
                           {overdue} late
                         </span>
                       )}
@@ -122,12 +141,13 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       </nav>
 
       {/* Footer of sidebar */}
-      <div className="border-t border-white/[0.06] px-5 py-4">
-        <p className="text-[11px] leading-relaxed text-stone-500">
-          Registered money lender
-          <br />
-          {settings?.licence || "Licence pending"}
-        </p>
+      <div className="relative border-t border-white/[0.06] px-5 py-4">
+        <div className="flex items-center gap-2">
+          <span className="pulse-dot text-emerald-400" aria-hidden />
+          <p className="text-[10.5px] font-medium tracking-wide text-emerald-300/80">
+            Ledger live · {settings?.licence || "Licence pending"}
+          </p>
+        </div>
         <p className="mt-2 text-[10px] tracking-wide text-stone-600">
           MERIDIAN · v1.0
         </p>

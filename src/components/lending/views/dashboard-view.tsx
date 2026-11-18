@@ -172,8 +172,9 @@ export function DashboardView() {
         />
       </div>
 
-      {/* Portfolio strip */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border bg-border shadow-xs md:grid-cols-4">
+      {/* Portfolio strip — the signature dark emerald band */}
+      <div className="stat-band relative grid grid-cols-2 overflow-hidden rounded-xl shadow-lg shadow-emerald-950/20 ring-1 ring-emerald-950/50 md:grid-cols-4">
+        <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_140%_at_100%_0%,oklch(0.42_0.08_164/35%),transparent_60%)]" />
         {[
           {
             label: "Total Disbursed",
@@ -190,13 +191,13 @@ export function DashboardView() {
             value: null,
             hint: "collected vs schedule",
             custom: (
-              <div className="mt-1.5">
-                <p className="text-[22px] font-semibold leading-none tracking-tight">
+              <div className="mt-2">
+                <p className="font-display text-[24px] font-semibold leading-none tracking-tight text-emerald-50">
                   {Math.round(kpis.collectionRate * 100)}%
                 </p>
-                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div className="mt-2.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                   <div
-                    className="h-full rounded-full bg-emerald-600 dark:bg-emerald-500"
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-300 shadow-[0_0_8px_oklch(0.696_0.17_162/0.6)]"
                     style={{ width: `${Math.min(100, kpis.collectionRate * 100)}%` }}
                   />
                 </div>
@@ -208,32 +209,40 @@ export function DashboardView() {
             value: kpis.expectedThisMonth,
             hint: `${kpis.clientsWithActiveLoans} borrowers active`,
           },
-        ].map((s) => (
-          <div key={s.label} className="bg-card p-4 sm:p-5">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        ].map((s, i) => (
+          <div
+            key={s.label}
+            className={cn(
+              "relative p-4 sm:p-5",
+              // hairline dividers between segments
+              "border-emerald-200/[0.08]",
+              i > 0 && "border-l",
+              i >= 2 && "border-t md:border-t-0",
+              i === 2 && "border-l-0 md:border-l"
+            )}
+          >
+            <p className="text-[10.5px] font-semibold tracking-[0.1em] text-emerald-200/60 uppercase">
               {s.label}
             </p>
             {s.custom ?? (
-              <>
-                <p className="mt-1.5 text-[22px] font-semibold leading-none tracking-tight">
-                  <Money value={s.value ?? 0} />
-                </p>
-                <p className="mt-2 text-[12px] text-muted-foreground">{s.hint}</p>
-              </>
+              <p className="mt-2 font-display text-[24px] font-semibold leading-none tracking-tight text-emerald-50">
+                <Money value={s.value ?? 0} />
+              </p>
             )}
-            {s.custom && (
-              <p className="mt-2 text-[12px] text-muted-foreground">{s.hint}</p>
-            )}
+            <p className="relative mt-2 text-[11.5px] text-emerald-100/40">{s.hint}</p>
           </div>
         ))}
       </div>
 
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className="card-lux lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-[15px]">Collections</CardTitle>
+              <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
+                Cash flow
+              </p>
+              <CardTitle className="mt-0.5 text-[15px]">Collections</CardTitle>
               <p className="mt-0.5 text-xs text-muted-foreground">
                 Last 12 months · interest and principal split
               </p>
@@ -251,6 +260,16 @@ export function DashboardView() {
             <div className="h-[290px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={monthly as MonthPointDTO[]} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradPrincipal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="oklch(0.596 0.145 163)" />
+                      <stop offset="100%" stopColor="oklch(0.596 0.145 163 / 0.55)" />
+                    </linearGradient>
+                    <linearGradient id="gradInterest" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="oklch(0.769 0.17 70)" />
+                      <stop offset="100%" stopColor="oklch(0.769 0.17 70 / 0.55)" />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis
                     dataKey="label"
@@ -273,17 +292,20 @@ export function DashboardView() {
                     )}
                     cursor={{ fill: "var(--accent)", opacity: 0.4 }}
                   />
-                  <Bar dataKey="principal" name="Principal" stackId="c" fill="var(--chart-1)" radius={[0, 0, 0, 0]} maxBarSize={26} />
-                  <Bar dataKey="interest" name="Interest" stackId="c" fill="var(--chart-2)" radius={[3, 3, 0, 0]} maxBarSize={26} />
+                  <Bar dataKey="principal" name="Principal" stackId="c" fill="url(#gradPrincipal)" radius={[0, 0, 0, 0]} maxBarSize={26} />
+                  <Bar dataKey="interest" name="Interest" stackId="c" fill="url(#gradInterest)" radius={[3, 3, 0, 0]} maxBarSize={26} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-lux">
           <CardHeader>
-            <CardTitle className="text-[15px]">Portfolio Health</CardTitle>
+            <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
+                Exposure
+              </p>
+            <CardTitle className="mt-0.5 text-[15px]">Portfolio Health</CardTitle>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {totalActive} active loans
             </p>
@@ -325,10 +347,10 @@ export function DashboardView() {
                 </PieChart>
               </ResponsiveContainer>
               <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
+                <p className="text-[9.5px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
                   Exposure
                 </p>
-                <p className="text-xl font-semibold tracking-tight">
+                <p className="mt-0.5 font-display text-[22px] font-semibold tracking-tight">
                   <Money value={kpis.portfolioBalance} compact />
                 </p>
               </div>
@@ -354,9 +376,14 @@ export function DashboardView() {
 
       {/* Activity + attention */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
+        <Card className="card-lux lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="text-[15px]">Recent Payments</CardTitle>
+            <div>
+              <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
+                Latest activity
+              </p>
+              <CardTitle className="mt-0.5 text-[15px]">Recent Payments</CardTitle>
+            </div>
             <button
               onClick={() => setView("payments")}
               className="inline-flex items-center gap-1 text-[12.5px] font-medium text-emerald-700 hover:underline dark:text-emerald-400"
@@ -377,7 +404,7 @@ export function DashboardView() {
                   <li key={p.id}>
                     <button
                       onClick={() => openLoan(p.loanId)}
-                      className="flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-muted/50"
+                      className="flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06]"
                     >
                       <ClientAvatar name={p.clientName} className="size-8 text-[12px]" />
                       <div className="min-w-0 flex-1">
@@ -386,17 +413,15 @@ export function DashboardView() {
                           {p.loanReference} · {methodLabel(p.method)} · {fmtDateShort(p.date)}
                         </p>
                       </div>
-                      <div className="hidden text-right text-[12px] text-muted-foreground sm:block">
-                        <span className="tabular-nums font-medium text-amber-700 dark:text-amber-400">
-                          {fmtMoney(p.interestPart, currency)}
+                      <div className="hidden text-right text-[11.5px] text-muted-foreground sm:block">
+                        <span className="rounded-md bg-amber-50 px-1.5 py-0.5 font-medium text-amber-700 tabular-nums dark:bg-amber-500/10 dark:text-amber-300">
+                          {fmtMoney(p.interestPart, currency)} int
                         </span>{" "}
-                        int ·{" "}
-                        <span className="tabular-nums font-medium text-emerald-700 dark:text-emerald-400">
-                          {fmtMoney(p.principalPart, currency)}
-                        </span>{" "}
-                        prin
+                        <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 font-medium text-emerald-700 tabular-nums dark:bg-emerald-500/10 dark:text-emerald-300">
+                          {fmtMoney(p.principalPart, currency)} prin
+                        </span>
                       </div>
-                      <p className="w-24 text-right text-[14px] font-semibold">
+                      <p className="w-24 text-right font-display text-[15px] font-semibold">
                         <Money value={p.amount} />
                       </p>
                     </button>
@@ -407,10 +432,15 @@ export function DashboardView() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-lux">
           <CardHeader className="flex-row items-center justify-between">
-            <CardTitle className="text-[15px]">Needs Attention</CardTitle>
-            <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-medium text-red-700 ring-1 ring-inset ring-red-600/15 dark:bg-red-500/10 dark:text-red-300">
+            <div>
+              <p className="text-[10px] font-semibold tracking-[0.12em] text-red-600 uppercase dark:text-red-400">
+                Watchlist
+              </p>
+              <CardTitle className="mt-0.5 text-[15px]">Needs Attention</CardTitle>
+            </div>
+            <span className="rounded-full bg-gradient-to-r from-red-50 to-rose-50 px-2.5 py-0.5 text-[11px] font-semibold text-red-700 ring-1 ring-inset ring-red-600/15 tabular-nums dark:from-red-500/15 dark:to-rose-500/10 dark:text-red-300 dark:ring-red-400/25">
               {attention.length}
             </span>
           </CardHeader>
@@ -427,8 +457,17 @@ export function DashboardView() {
                   <li key={l.id}>
                     <button
                       onClick={() => openLoan(l.id)}
-                      className="flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-muted/50"
+                      className="flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-red-50/50 dark:hover:bg-red-500/[0.05]"
                     >
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "h-8 w-1 shrink-0 rounded-full",
+                          l.status === "overdue"
+                            ? "bg-gradient-to-b from-red-500 to-rose-500"
+                            : "bg-gradient-to-b from-amber-400 to-orange-500"
+                        )}
+                      />
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13.5px] font-medium">{l.clientName}</p>
                         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">

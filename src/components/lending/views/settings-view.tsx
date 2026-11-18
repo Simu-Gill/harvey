@@ -56,10 +56,13 @@ function SettingsForm({ initial }: { initial: SettingsDTO }) {
 
   return (
     <div className="mx-auto max-w-4xl space-y-5">
-      <Card>
+      <Card className="card-lux">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[15px]">
-            <Building2 className="size-4 text-muted-foreground" /> Business Profile
+          <CardTitle className="flex items-center gap-2.5 text-[15px]">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25">
+              <Building2 className="size-4" />
+            </span>{" "}
+            Business Profile
           </CardTitle>
           <CardDescription>Appears on the sidebar, footer, and reports.</CardDescription>
         </CardHeader>
@@ -85,10 +88,13 @@ function SettingsForm({ initial }: { initial: SettingsDTO }) {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card className="card-lux">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[15px]">
-            <SlidersHorizontal className="size-4 text-muted-foreground" /> Lending Defaults
+          <CardTitle className="flex items-center gap-2.5 text-[15px]">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/25">
+              <SlidersHorizontal className="size-4" />
+            </span>{" "}
+            Lending Defaults
           </CardTitle>
           <CardDescription>
             Pre-filled every time a new loan is created — change per loan at any time.
@@ -138,10 +144,13 @@ function SettingsForm({ initial }: { initial: SettingsDTO }) {
         </Button>
       </div>
 
-      <Card className="bg-muted/30">
+      <Card className="card-lux bg-muted/30">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-[15px]">
-            <Calculator className="size-4 text-muted-foreground" /> How the Numbers Work
+          <CardTitle className="flex items-center gap-2.5 text-[15px]">
+            <span className="flex size-7 items-center justify-center rounded-lg bg-gradient-to-br from-stone-500 to-stone-700 text-white shadow-md shadow-stone-500/25">
+              <Calculator className="size-4" />
+            </span>{" "}
+            How the Numbers Work
           </CardTitle>
           <CardDescription>The exact rules this system applies — no hidden maths.</CardDescription>
         </CardHeader>
@@ -191,7 +200,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function Rule({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border bg-card p-3.5">
+    <div className="accent-top card-lux rounded-lg border bg-card p-3.5">
       <p className="text-[12.5px] font-semibold text-foreground">{title}</p>
       <p className="mt-1">{children}</p>
     </div>
