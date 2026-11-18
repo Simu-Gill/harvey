@@ -10,6 +10,7 @@ const paymentSchema = z.object({
   date: z.string().min(8),
   method: z.enum(["cash", "bank_transfer", "mobile_money", "check", "other"]),
   note: z.string().max(300).optional().nullable(),
+  recordedBy: z.string().max(80).optional().nullable(),
 });
 
 export async function GET(req: NextRequest) {
@@ -69,6 +70,7 @@ export async function POST(req: NextRequest) {
         date,
         method: d.method,
         note: d.note || null,
+        recordedBy: d.recordedBy?.trim() || null,
       },
     });
 

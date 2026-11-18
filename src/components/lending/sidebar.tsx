@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Landmark,
   Receipt,
-  Settings2,
   Users,
   X,
 } from "lucide-react";
@@ -29,10 +28,6 @@ const NAV: { section: string; items: { view: View; label: string; icon: React.El
   {
     section: "Insights",
     items: [{ view: "reports", label: "Reports", icon: BarChart3 }],
-  },
-  {
-    section: "System",
-    items: [{ view: "settings", label: "Settings", icon: Settings2 }],
   },
 ];
 

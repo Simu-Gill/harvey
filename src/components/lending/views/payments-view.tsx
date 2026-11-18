@@ -10,6 +10,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -28,6 +33,7 @@ import { fmtMoney } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { methodLabel, PAYMENT_METHODS } from "@/lib/types";
 import { EmptyState } from "../empty-state";
+import { ClientAvatar } from "../client-avatar";
 import { Money } from "../money";
 import { useApp } from "../store";
 import { usePayments } from "../queries";
@@ -74,7 +80,7 @@ export function PaymentsView() {
   }, [rows]);
 
   const exportCsv = () => {
-    const header = ["Date", "Client", "Loan", "Amount", "Interest", "Principal", "Method", "Note"];
+    const header = ["Date", "Client", "Loan", "Amount", "Interest", "Principal", "Method", "Added By", "Note"];
     const lines = rows.map((p) =>
       [
         format(new Date(p.date), "yyyy-MM-dd"),
@@ -84,6 +90,7 @@ export function PaymentsView() {
         p.interestPart.toFixed(2),
         p.principalPart.toFixed(2),
         methodLabel(p.method),
+        p.recordedBy ?? "",
         (p.note ?? "").replace(/"/g, '""'),
       ]
         .map((v) => `"${v}"`)
@@ -177,7 +184,7 @@ export function PaymentsView() {
           ) : (
             <div className="max-h-[640px] overflow-auto scrollbar-slim">
               <Table>
-                <TableHeader className="thead-lux sticky top-0 z-10 bg-card after:absolute after:inset-x-0 after:bottom-0 after:h-px after:bg-border">
+                <TableHeader className="thead-lux sticky top-0 z-10">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="pl-6">Date</TableHead>
                     <TableHead>Client</TableHead>
@@ -186,15 +193,20 @@ export function PaymentsView() {
                     <TableHead className="hidden text-right md:table-cell">Interest</TableHead>
                     <TableHead className="hidden text-right md:table-cell">Principal</TableHead>
                     <TableHead className="hidden lg:table-cell">Method</TableHead>
-                    <TableHead className="hidden pr-6 xl:table-cell">Note</TableHead>
+                    <TableHead className="hidden lg:table-cell">Added By</TableHead>
+                    <TableHead className="hidden pr-6 text-center xl:table-cell">Note</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.map((p) => (
+                  {rows.map((p, i) => (
                     <TableRow
                       key={p.id}
                       onClick={() => openLoan(p.loanId)}
-                      className="cursor-pointer transition-colors hover:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06]"
+                      className={cn(
+                        "cursor-pointer transition-colors hover:bg-emerald-50/60 focus-visible:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06] dark:focus-visible:bg-emerald-500/[0.06]",
+                        // gentle zebra wash so long ledgers stay readable
+                        i % 2 === 1 && "bg-emerald-50/20 dark:bg-emerald-500/[0.025]"
+                      )}
                       tabIndex={0}
                       onKeyDown={(e) => e.key === "Enter" && openLoan(p.loanId)}
                     >
@@ -221,8 +233,37 @@ export function PaymentsView() {
                           {methodLabel(p.method)}
                         </span>
                       </TableCell>
-                      <TableCell className="hidden max-w-[180px] truncate pr-6 text-[12px] text-muted-foreground xl:table-cell">
-                        {p.note ?? "—"}
+                      <TableCell className="hidden lg:table-cell">
+                        {p.recordedBy ? (
+                          <span className="flex items-center gap-2">
+                            <ClientAvatar name={p.recordedBy} className="size-6 text-[10px]" />
+                            <span className="text-[12.5px] text-muted-foreground">
+                              {p.recordedBy}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-[12.5px] text-muted-foreground/60">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="hidden pr-6 text-center xl:table-cell">
+                        {p.note ? (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                aria-label={`Note: ${p.note}`}
+                                className="inline-flex size-7 items-center justify-center rounded-md text-[14px] leading-none transition-colors hover:bg-amber-50 dark:hover:bg-amber-500/10"
+                              >
+                                📓
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[260px] text-left text-[12px] leading-relaxed whitespace-normal">
+                              {p.note}
+                            </TooltipContent>
+                          </Tooltip>
+                        ) : (
+                          <span className="text-[12.5px] text-muted-foreground/60">—</span>
+                        )}
                       </TableCell>
                     </TableRow>
                   ))}

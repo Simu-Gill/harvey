@@ -481,6 +481,8 @@ async function main() {
 
     const prior: { interestPart: number; principalPart: number }[] = [];
     const ordered = [...spec.payments].sort((a, b) => a.at.getTime() - b.at.getTime());
+    const staff = ["Margaret", "Grace", "Susan"];
+    let payIdx = 0;
     for (const p of ordered) {
       const alloc = allocatePayment(core, prior, p.amount, p.at);
       if (p.amount > alloc.balanceBefore + 0.01) {
@@ -497,6 +499,7 @@ async function main() {
           date: p.at,
           method: p.method ?? "cash",
           note: p.note,
+          recordedBy: staff[payIdx++ % staff.length],
         },
       });
       prior.push({

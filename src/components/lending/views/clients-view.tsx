@@ -35,6 +35,26 @@ import { useClients } from "../queries";
 
 type HealthFilter = "all" | "on_track" | "behind" | "overdue" | "clean";
 
+// light row washes per health status (kept in sync with loans view)
+const HEALTH_TINT: Record<string, { tint: string; hover: string }> = {
+  on_track: {
+    tint: "bg-emerald-50/40 dark:bg-emerald-500/[0.045]",
+    hover: "hover:bg-emerald-50/80 focus-visible:bg-emerald-50/80 dark:hover:bg-emerald-500/[0.09] dark:focus-visible:bg-emerald-500/[0.09]",
+  },
+  behind: {
+    tint: "bg-amber-50/50 dark:bg-amber-500/[0.055]",
+    hover: "hover:bg-amber-50/90 focus-visible:bg-amber-50/90 dark:hover:bg-amber-500/[0.1] dark:focus-visible:bg-amber-500/[0.1]",
+  },
+  overdue: {
+    tint: "bg-red-50/50 dark:bg-red-500/[0.06]",
+    hover: "hover:bg-red-50/90 focus-visible:bg-red-50/90 dark:hover:bg-red-500/[0.11] dark:focus-visible:bg-red-500/[0.11]",
+  },
+  clean: {
+    tint: "",
+    hover: "hover:bg-emerald-50/60 focus-visible:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06] dark:focus-visible:bg-emerald-500/[0.06]",
+  },
+};
+
 export function ClientsView() {
   const { data: clients, isLoading } = useClients();
   const openClient = useApp((s) => s.openClient);
@@ -171,10 +191,16 @@ export function ClientsView() {
 }
 
 function ClientRow({ client, onOpen }: { client: ClientDTO; onOpen: () => void }) {
+  const wash = HEALTH_TINT[client.health] ?? HEALTH_TINT.clean;
   return (
     <TableRow
       onClick={onOpen}
-      className="group cursor-pointer transition-colors hover:bg-emerald-50/60 focus-visible:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06] dark:focus-visible:bg-emerald-500/[0.06]"
+      className={cn(
+        "group cursor-pointer transition-colors",
+        wash.tint,
+        wash.hover,
+        "focus-visible:outline-2 focus-visible:outline-emerald-500/40"
+      )}
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
     >

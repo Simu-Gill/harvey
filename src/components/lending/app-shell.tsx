@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
-import { HandCoins, Landmark, Menu, Moon, Settings2, Sun } from "lucide-react";
+import { HandCoins, Landmark, Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApp, type View } from "./store";
@@ -17,7 +17,6 @@ import { ClientsView } from "./views/clients-view";
 import { LoansView } from "./views/loans-view";
 import { PaymentsView } from "./views/payments-view";
 import { ReportsView } from "./views/reports-view";
-import { SettingsView } from "./views/settings-view";
 import { ClientSheet } from "./client-sheet";
 import { LoanSheet } from "./loan-sheet";
 import { ClientDialog } from "./client-dialog";
@@ -30,7 +29,6 @@ const TITLES: Record<View, { title: string; subtitle: string }> = {
   loans: { title: "Loans", subtitle: "Disbursements, schedules and balances" },
   payments: { title: "Collections Ledger", subtitle: "Every payment received, fully allocated" },
   reports: { title: "Reports", subtitle: "Performance, aging and concentration analysis" },
-  settings: { title: "Settings", subtitle: "Business profile and system defaults" },
 };
 
 function ThemeToggle() {
@@ -50,7 +48,7 @@ function ThemeToggle() {
 }
 
 export function AppShell() {
-  const { view, setView } = useApp();
+  const view = useApp((s) => s.view);
   const { data: settings } = useSettings();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -58,7 +56,7 @@ export function AppShell() {
   useEffect(() => {
     const fromHash = () => {
       const h = window.location.hash.replace(/^#\/?/, "");
-      const valid = ["dashboard", "clients", "loans", "payments", "reports", "settings"];
+      const valid = ["dashboard", "clients", "loans", "payments", "reports"];
       if (valid.includes(h)) useApp.setState({ view: h as View });
     };
     fromHash();
@@ -121,15 +119,6 @@ export function AppShell() {
                 <span className="hidden md:inline">New Loan</span>
               </Button>
               <ThemeToggle />
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label="Settings"
-                className="text-muted-foreground"
-                onClick={() => setView("settings")}
-              >
-                <Settings2 className="size-[17px]" />
-              </Button>
             </div>
           </div>
         </header>
@@ -149,7 +138,6 @@ export function AppShell() {
               {view === "loans" && <LoansView />}
               {view === "payments" && <PaymentsView />}
               {view === "reports" && <ReportsView />}
-              {view === "settings" && <SettingsView />}
             </motion.div>
           </AnimatePresence>
         </main>

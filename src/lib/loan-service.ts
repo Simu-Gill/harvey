@@ -132,6 +132,7 @@ export function paymentToDTO(p: PaymentWithLoan): PaymentDTO {
     date: p.date.toISOString(),
     method: p.method,
     note: p.note,
+    recordedBy: p.recordedBy,
     createdAt: p.createdAt.toISOString(),
   };
 }
@@ -272,7 +273,7 @@ export async function getDashboard(): Promise<DashboardDTO> {
   const now = new Date();
   const loans = await db.loan.findMany({ include: { client: true, payments: true } });
   const dtos = loans.map((l) => loanToDTO(l, now));
-  const recent = await getPayments({ limit: 8 });
+  const recent = await getPayments({ limit: 20 });
 
   const active = dtos.filter((l) => l.status !== "completed");
   const overdue = dtos.filter((l) => l.status === "overdue");

@@ -1,14 +1,22 @@
 "use client";
 
-// Loan book: every disbursement with live position, filterable by
-// status. Row click opens the full loan sheet with schedule.
+// Loan book: every disbursement with live position. Status KPIs up top,
+// a refined segmented filter, and rows washed by status colour.
 
 import { useMemo, useState } from "react";
-import { ChevronRight, Landmark, Plus, Search } from "lucide-react";
+import {
+  CheckCircle2,
+  ChevronRight,
+  CircleDashed,
+  Clock,
+  Landmark,
+  Plus,
+  Search,
+  TriangleAlert,
+} from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -27,6 +35,51 @@ import { useLoans } from "../queries";
 import { cn } from "@/lib/utils";
 
 type Tab = "all" | LoanStatus;
+
+const STATUS_META: Record<
+  LoanStatus,
+  {
+    label: string;
+    icon: React.ElementType;
+    value: string; // foreground tone
+    chip: string; // icon tile
+    tint: string; // row wash
+    hover: string;
+  }
+> = {
+  on_track: {
+    label: "On Track",
+    icon: CircleDashed,
+    value: "text-emerald-700 dark:text-emerald-400",
+    chip: "bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/25",
+    tint: "bg-emerald-50/40 dark:bg-emerald-500/[0.045]",
+    hover: "hover:bg-emerald-50/80 focus-visible:bg-emerald-50/80 dark:hover:bg-emerald-500/[0.09] dark:focus-visible:bg-emerald-500/[0.09]",
+  },
+  behind: {
+    label: "Behind",
+    icon: Clock,
+    value: "text-amber-700 dark:text-amber-400",
+    chip: "bg-gradient-to-br from-amber-400 to-orange-500 text-white shadow-md shadow-amber-500/25",
+    tint: "bg-amber-50/50 dark:bg-amber-500/[0.055]",
+    hover: "hover:bg-amber-50/90 focus-visible:bg-amber-50/90 dark:hover:bg-amber-500/[0.1] dark:focus-visible:bg-amber-500/[0.1]",
+  },
+  overdue: {
+    label: "Overdue",
+    icon: TriangleAlert,
+    value: "text-red-600 dark:text-red-400",
+    chip: "bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-md shadow-red-500/25",
+    tint: "bg-red-50/50 dark:bg-red-500/[0.06]",
+    hover: "hover:bg-red-50/90 focus-visible:bg-red-50/90 dark:hover:bg-red-500/[0.11] dark:focus-visible:bg-red-500/[0.11]",
+  },
+  completed: {
+    label: "Settled",
+    icon: CheckCircle2,
+    value: "text-stone-600 dark:text-stone-300",
+    chip: "bg-gradient-to-br from-stone-500 to-stone-700 text-white shadow-md shadow-stone-500/20",
+    tint: "bg-stone-100/60 dark:bg-stone-500/[0.06]",
+    hover: "hover:bg-stone-100 dark:hover:bg-stone-500/[0.1]",
+  },
+};
 
 export function LoansView() {
   const { data: loans, isLoading } = useLoans();
@@ -57,31 +110,102 @@ export function LoansView() {
     });
   }, [loans, tab, query]);
 
+  const TABS: [Tab, string][] = [
+    ["all", "All"],
+    ["on_track", "On Track"],
+    ["behind", "Behind"],
+    ["overdue", "Overdue"],
+    ["completed", "Settled"],
+  ];
+
   return (
     <div className="space-y-5">
+      {/* status KPIs */}
+      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+        {(Object.keys(STATUS_META) as LoanStatus[]).map((s) => {
+          const meta = STATUS_META[s];
+          const Icon = meta.icon;
+          return (
+            <button
+              key={s}
+              onClick={() => setTab(tab === s ? "all" : s)}
+              aria-pressed={tab === s}
+              className={cn(
+                "card-lux accent-top group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all duration-200",
+                "hover:-translate-y-0.5 hover:border-ring/40",
+                tab === s && "border-emerald-500/40 ring-2 ring-emerald-500/20"
+              )}
+            >
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden
+                  className={cn(
+                    "inline-flex size-9 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105",
+                    meta.chip
+                  )}
+                >
+                  <Icon className="size-[17px]" strokeWidth={2.2} />
+                </span>
+                <p className="text-[10.5px] font-semibold tracking-[0.1em] text-muted-foreground uppercase">
+                  {meta.label}
+                </p>
+              </div>
+              <p
+                className={cn(
+                  "mt-3 font-display text-[26px] leading-none font-semibold tracking-tight tabular-nums",
+                  meta.value
+                )}
+              >
+                {counts[s]}
+              </p>
+              <p className="mt-1.5 text-[11.5px] text-muted-foreground">
+                {s === "completed" ? "fully repaid" : "loans"} · click to filter
+              </p>
+            </button>
+          );
+        })}
+      </div>
+
       <Card className="card-lux">
         <div className="flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
+          {/* segmented filter */}
           <div className="-mx-1 overflow-x-auto px-1 pb-0.5 scrollbar-slim">
-            <Tabs value={tab} onValueChange={(v) => setTab(v as Tab)}>
-            <TabsList className="h-9">
-              {(
-                [
-                  ["all", "All"],
-                  ["on_track", "On Track"],
-                  ["behind", "Behind"],
-                  ["overdue", "Overdue"],
-                  ["completed", "Settled"],
-                ] as [Tab, string][]
-              ).map(([value, label]) => (
-                <TabsTrigger key={value} value={value} className="h-7 px-3 text-[12.5px]">
-                  {label}
-                  <span className="ml-1.5 tabular-nums text-muted-foreground">
-                    {counts[value]}
-                  </span>
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            </Tabs>
+            <div
+              role="tablist"
+              aria-label="Filter loans by status"
+              className="inline-flex items-center gap-1 rounded-full border bg-muted/50 p-1"
+            >
+              {TABS.map(([value, label]) => {
+                const active = tab === value;
+                return (
+                  <button
+                    key={value}
+                    role="tab"
+                    aria-selected={active}
+                    onClick={() => setTab(value)}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium whitespace-nowrap transition-all duration-150",
+                      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/60",
+                      active
+                        ? "bg-card text-emerald-800 shadow-sm ring-1 ring-emerald-600/20 dark:text-emerald-300 dark:ring-emerald-400/25"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {label}
+                    <span
+                      className={cn(
+                        "rounded-full px-1.5 py-px text-[10.5px] font-semibold tabular-nums",
+                        active
+                          ? "bg-emerald-600/10 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300"
+                          : "bg-muted text-muted-foreground"
+                      )}
+                    >
+                      {counts[value]}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <div className="relative flex-1 lg:max-w-xs">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -141,8 +265,17 @@ export function LoansView() {
 }
 
 function LoanRow({ loan, onOpen }: { loan: LoanDTO; onOpen: () => void }) {
+  const meta = STATUS_META[loan.status];
   return (
-    <TableRow onClick={onOpen} className="group cursor-pointer transition-colors hover:bg-emerald-50/60 dark:hover:bg-emerald-500/[0.06]" tabIndex={0}
+    <TableRow
+      onClick={onOpen}
+      className={cn(
+        "group cursor-pointer transition-colors",
+        meta.tint,
+        meta.hover,
+        "focus-visible:outline-2 focus-visible:outline-emerald-500/40"
+      )}
+      tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onOpen()}
     >
       <TableCell className="py-3.5 pl-6">
@@ -175,7 +308,7 @@ function LoanRow({ loan, onOpen }: { loan: LoanDTO; onOpen: () => void }) {
       </TableCell>
       <TableCell className="hidden w-32 pr-4 sm:table-cell">
         <div className="ml-auto flex items-center gap-2">
-          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-muted shadow-[inset_0_1px_2px_oklch(0_0_0/0.06)]">
+          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-white/60 shadow-[inset_0_1px_2px_oklch(0_0_0/0.08)] dark:bg-white/10">
             <div
               className={cn(
                 "h-full rounded-full",
@@ -183,7 +316,9 @@ function LoanRow({ loan, onOpen }: { loan: LoanDTO; onOpen: () => void }) {
                   ? "bg-gradient-to-r from-red-500 to-rose-500"
                   : loan.status === "behind"
                     ? "bg-gradient-to-r from-amber-400 to-orange-500"
-                    : "bg-gradient-to-r from-emerald-500 to-teal-500"
+                    : loan.status === "completed"
+                      ? "bg-gradient-to-r from-stone-400 to-stone-500"
+                      : "bg-gradient-to-r from-emerald-500 to-teal-500"
               )}
               style={{ width: `${Math.round(loan.progress * 100)}%` }}
             />

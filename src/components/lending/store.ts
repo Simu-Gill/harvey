@@ -11,8 +11,7 @@ export type View =
   | "clients"
   | "loans"
   | "payments"
-  | "reports"
-  | "settings";
+  | "reports";
 
 interface AppStore {
   view: View;

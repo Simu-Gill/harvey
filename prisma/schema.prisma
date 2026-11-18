@@ -61,6 +61,7 @@ model Payment {
   date          DateTime
   method        String // cash | bank_transfer | mobile_money | check | other
   note          String?
+  recordedBy    String? // name of the staff member who entered the collection
   createdAt     DateTime @default(now())
 
   @@index([loanId, date])

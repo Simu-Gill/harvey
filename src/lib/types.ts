@@ -106,6 +106,7 @@ export interface PaymentDTO {
   date: string;
   method: string;
   note: string | null;
+  recordedBy: string | null;
   createdAt: string;
 }
 
