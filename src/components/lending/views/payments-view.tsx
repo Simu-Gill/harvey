@@ -127,7 +127,7 @@ export function PaymentsView() {
         ))}
       </div>
 
-      <Card className="card-lux">
+      <Card className="card-lux overflow-hidden">
         <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />

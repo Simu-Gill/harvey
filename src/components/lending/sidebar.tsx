@@ -3,6 +3,7 @@
 // The signature dark-green sidebar — always dark in both themes,
 // like a private bank's letterhead.
 
+import { useId } from "react";
 import {
   BarChart3,
   LayoutDashboard,
@@ -135,19 +136,68 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
-      {/* Footer of sidebar */}
-      <div className="relative border-t border-white/[0.06] px-5 py-4">
-        <div className="flex items-center gap-2">
-          <span className="pulse-dot text-emerald-400" aria-hidden />
-          <p className="text-[10.5px] font-medium tracking-wide text-emerald-300/80">
-            Ledger live · {settings?.licence || "Licence pending"}
-          </p>
-        </div>
-        <p className="mt-2 text-[10px] tracking-wide text-stone-600">
-          MERIDIAN · v1.0
+      {/* Footer of sidebar — Aurath Solutions wordmark */}
+      <div className="relative shrink-0 border-t border-white/[0.06] px-5 pt-4 pb-4">
+        {/* Stacked, full-width justified lockup at a true 70px size.
+            SVG textLength keeps each word exactly filling the column in
+            any font of the stack (Avallon Alt when installed).
+            The gradient id is unique per sidebar instance so the mobile
+            drawer never resolves the hidden desktop sidebar's paint. */}
+        <SidebarWordmark />
+        <p className="mt-2 text-left text-[10.5px] tracking-wide text-stone-500">
+          © {new Date().getFullYear()} ·{" "}
+          <a
+            href="mailto:hi@aurath.net"
+            className="text-stone-400 transition-colors hover:text-emerald-300"
+          >
+            hi@aurath.net
+          </a>
         </p>
       </div>
     </div>
+  );
+}
+
+function SidebarWordmark() {
+  const gradId = useId();
+  const paint = `url(#${gradId})`;
+  return (
+    <svg
+      viewBox="0 0 216 116"
+      width="100%"
+      aria-hidden
+      className="font-aurath block"
+      style={{ overflow: "visible" }}
+    >
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="oklch(0.975 0.004 90)" />
+          <stop offset="100%" stopColor="oklch(0.805 0.018 95)" />
+        </linearGradient>
+      </defs>
+      <text
+        x="0"
+        y="50"
+        fontSize="70"
+        fontWeight="600"
+        fill={paint}
+        textLength="216"
+        lengthAdjust="spacingAndGlyphs"
+      >
+        Aurath
+      </text>
+      <text
+        x="0"
+        y="108"
+        fontSize="70"
+        fontWeight="600"
+        fill={paint}
+        textLength="216"
+        lengthAdjust="spacingAndGlyphs"
+      >
+        Solutions
+      </text>
+    </svg>
   );
 }
 

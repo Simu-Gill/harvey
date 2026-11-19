@@ -35,7 +35,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -51,7 +51,7 @@ import { cn } from "@/lib/utils";
 import type { DashboardDTO, MonthPointDTO } from "@/lib/types";
 import { KpiCard } from "../kpi-card";
 import { Money, useCurrency } from "../money";
-import { StatusBadge, statusLabel } from "../status-badge";
+import { statusLabel } from "../status-badge";
 import { ClientAvatar } from "../client-avatar";
 import { EmptyState } from "../empty-state";
 import { PageSkeleton } from "../app-shell";
@@ -334,7 +334,7 @@ export function DashboardView() {
       {/* Charts */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="card-lux lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between">
+          <CardHeader>
             <div>
               <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
                 Cash flow
@@ -344,7 +344,7 @@ export function DashboardView() {
                 Last 12 months · interest and principal split
               </p>
             </div>
-            <div className="flex flex-col items-end gap-2">
+            <CardAction className="flex flex-col items-end gap-2.5">
               {(() => {
                 const h = collectionHealth(kpis.collectionRate);
                 return (
@@ -364,7 +364,7 @@ export function DashboardView() {
                   <span className="size-2.5 rounded-[3px] bg-[var(--chart-2)]" /> Interest
                 </span>
               </div>
-            </div>
+            </CardAction>
           </CardHeader>
           <CardContent>
             <div className="h-[290px]">
@@ -411,7 +411,7 @@ export function DashboardView() {
         </Card>
 
         <Card className="card-lux">
-          <CardHeader className="flex-row items-start justify-between">
+          <CardHeader>
             <div>
               <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
                 Exposure
@@ -421,10 +421,12 @@ export function DashboardView() {
                 {totalActive} active loans
               </p>
             </div>
-            {(() => {
-              const h = portfolioHealth(statusMix);
-              return <HealthPill label={h.label} tone={h.tone} icon={h.icon} />;
-            })()}
+            <CardAction>
+              {(() => {
+                const h = portfolioHealth(statusMix);
+                return <HealthPill label={h.label} tone={h.tone} icon={h.icon} />;
+              })()}
+            </CardAction>
           </CardHeader>
           <CardContent>
             <div className="relative h-[180px]">
@@ -493,19 +495,21 @@ export function DashboardView() {
       {/* Activity + attention — twin tables, equal height, 7 rows peeking */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="card-lux flex flex-col overflow-hidden lg:col-span-2">
-          <CardHeader className="flex-row items-center justify-between border-b">
+          <CardHeader className="border-b">
             <div>
               <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
                 Latest activity
               </p>
               <CardTitle className="mt-0.5 text-[15px]">Recent Payments</CardTitle>
             </div>
-            <button
-              onClick={() => setView("payments")}
-              className="inline-flex items-center gap-1 text-[12.5px] font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-            >
-              View ledger <ArrowRight className="size-3.5" />
-            </button>
+            <CardAction>
+              <button
+                onClick={() => setView("payments")}
+                className="inline-flex items-center gap-1 text-[12.5px] font-medium text-emerald-700 hover:underline dark:text-emerald-400"
+              >
+                View ledger <ArrowRight className="size-3.5" />
+              </button>
+            </CardAction>
           </CardHeader>
           {recentPayments.length === 0 ? (
             <div className="flex h-[434px] items-center justify-center">
@@ -516,7 +520,7 @@ export function DashboardView() {
               />
             </div>
           ) : (
-            <div className="h-[434px] overflow-y-auto scrollbar-slim">
+            <div className="h-[434px] overflow-auto scrollbar-slim">
               <Table>
                 <TableHeader className="thead-lux sticky top-0 z-10">
                   <TableRow className="hover:bg-transparent">
@@ -590,13 +594,12 @@ export function DashboardView() {
               />
             </div>
           ) : (
-            <div className="h-[434px] overflow-y-auto scrollbar-slim">
-              <Table>
+            <div className="h-[434px] overflow-auto scrollbar-slim">
+              <Table className="table-fixed">
                 <TableHeader className="thead-lux sticky top-0 z-10">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="pl-6">Client</TableHead>
-                    <TableHead className="hidden sm:table-cell">Status</TableHead>
-                    <TableHead className="pr-6 text-right">Balance</TableHead>
+                    <TableHead className="w-40 pr-6 text-right">Balance</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -635,15 +638,12 @@ export function DashboardView() {
                                 </span>
                               ) : (
                                 <span className="font-medium text-amber-600 dark:text-amber-400">
-                                  {" "}· behind schedule
+                                  {" "}· behind
                                 </span>
                               )}
                             </p>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell className="hidden sm:table-cell">
-                        <StatusBadge status={l.status} className="px-2 py-0 text-[10.5px]" />
                       </TableCell>
                       <TableCell className="pr-6 text-right">
                         <span className="inline-flex items-center gap-1.5">

@@ -78,9 +78,9 @@ export function AppShell() {
       <Sidebar />
       <MobileSidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
 
-      <div className="flex min-h-screen flex-col lg:pl-64">
-        {/* Topbar */}
-        <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+      <div className="flex h-dvh flex-col overflow-hidden lg:pl-64">
+        {/* Topbar — always visible; only the content area scrolls */}
+        <header className="z-30 shrink-0 border-b bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
           <div className="mx-auto flex h-16 w-full max-w-[1440px] items-center gap-3 px-4 sm:px-6">
             <Button
               variant="ghost"
@@ -123,27 +123,29 @@ export function AppShell() {
           </div>
         </header>
 
-        {/* Content */}
-        <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 py-6 sm:px-6 sm:py-8">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={view}
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -4 }}
-              transition={{ duration: 0.16, ease: "easeOut" }}
-            >
-              {view === "dashboard" && <DashboardView />}
-              {view === "clients" && <ClientsView />}
-              {view === "loans" && <LoansView />}
-              {view === "payments" && <PaymentsView />}
-              {view === "reports" && <ReportsView />}
-            </motion.div>
-          </AnimatePresence>
+        {/* Content — the only scrollable region, so the footer stays frozen */}
+        <main className="flex-1 overflow-y-auto overscroll-contain">
+          <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={view}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.16, ease: "easeOut" }}
+              >
+                {view === "dashboard" && <DashboardView />}
+                {view === "clients" && <ClientsView />}
+                {view === "loans" && <LoansView />}
+                {view === "payments" && <PaymentsView />}
+                {view === "reports" && <ReportsView />}
+              </motion.div>
+            </AnimatePresence>
+          </div>
         </main>
 
-        {/* Sticky footer */}
-        <footer className="mt-auto border-t bg-card/60">
+        {/* Frozen footer — pinned to the bottom of the viewport on every menu */}
+        <footer className="shrink-0 border-t bg-card/60 pb-[env(safe-area-inset-bottom)]">
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-1 px-4 py-4 text-[11.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p>
               © {new Date().getFullYear()}{" "}

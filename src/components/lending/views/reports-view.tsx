@@ -114,15 +114,15 @@ export function ReportsView() {
 
           <div className="mt-5 overflow-x-auto scrollbar-slim">
             <table className="w-full text-[12.5px]">
-              <thead>
-                <tr className="border-b text-[11px] uppercase tracking-wide text-muted-foreground">
-                  <th className="py-2 pr-4 text-left font-semibold">Month</th>
-                  <th className="px-4 py-2 text-right font-semibold">Disbursed</th>
-                  <th className="px-4 py-2 text-right font-semibold">New Loans</th>
-                  <th className="px-4 py-2 text-right font-semibold">Collected</th>
-                  <th className="hidden px-4 py-2 text-right font-semibold md:table-cell">Interest</th>
-                  <th className="hidden px-4 py-2 text-right font-semibold md:table-cell">Principal</th>
-                  <th className="px-4 py-2 text-right font-semibold">Payments</th>
+              <thead className="thead-lux">
+                <tr>
+                  <th className="pr-4 pl-6 text-left">Month</th>
+                  <th className="px-4 text-right">Disbursed</th>
+                  <th className="px-4 text-right">New Loans</th>
+                  <th className="px-4 text-right">Collected</th>
+                  <th className="hidden px-4 text-right md:table-cell">Interest</th>
+                  <th className="hidden px-4 text-right md:table-cell">Principal</th>
+                  <th className="px-4 pr-6 text-right">Payments</th>
                 </tr>
               </thead>
               <tbody className="divide-y">

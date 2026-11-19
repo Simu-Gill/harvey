@@ -166,7 +166,7 @@ export function LoansView() {
         })}
       </div>
 
-      <Card className="card-lux">
+      <Card className="card-lux overflow-hidden">
         <div className="flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
           {/* segmented filter */}
           <div className="-mx-1 overflow-x-auto px-1 pb-0.5 scrollbar-slim">
