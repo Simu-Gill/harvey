@@ -143,6 +143,24 @@
   }
 }
 
+@layer base {
+  /* Hide every scrollbar app-wide (pages, tables, panels) while keeping
+     full scroll functionality via wheel / trackpad / touch / keyboard. */
+  * {
+    scrollbar-width: none;      /* Firefox */
+    -ms-overflow-style: none;   /* legacy Edge / IE */
+  }
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;              /* Chrome, Safari, Edge */
+  }
+  /* Radix ScrollArea renders a styled custom thumb — hide it too */
+  [data-slot="scroll-area-scrollbar"] {
+    display: none !important;
+  }
+}
+
 @layer utilities {
   /* Aurath Solutions wordmark — uses Avallon Alt when installed on the
      viewer's machine, falling back to the project's display serif */
@@ -150,27 +168,15 @@
     font-family: "Avallon Alt", "Avallon", var(--font-fraunces), Georgia, serif;
   }
 
-  /* slim, unobtrusive scrollbars for data-dense panels */
+  /* legacy hook: .scrollbar-slim previously showed a slim visible bar;
+     now kept only as a no-op so existing class usage stays valid */
   .scrollbar-slim {
-    scrollbar-width: thin;
-    scrollbar-color: oklch(0.82 0.01 85) transparent;
-  }
-  .dark .scrollbar-slim {
-    scrollbar-color: oklch(0.38 0.01 80) transparent;
+    scrollbar-width: none;
   }
   .scrollbar-slim::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-  .scrollbar-slim::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .scrollbar-slim::-webkit-scrollbar-thumb {
-    border-radius: 9999px;
-    background: oklch(0.82 0.01 85);
-  }
-  .dark .scrollbar-slim::-webkit-scrollbar-thumb {
-    background: oklch(0.38 0.01 80);
+    width: 0;
+    height: 0;
+    display: none;
   }
 
   /* ── Luxury surfaces ─────────────────────────────────────────── */
