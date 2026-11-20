@@ -94,7 +94,7 @@ export function AppShell() {
 
             <div className="min-w-0 flex-1">
               <p className="hidden text-[9.5px] font-semibold tracking-[0.16em] text-emerald-700/80 uppercase sm:block dark:text-emerald-400/80">
-                Meridian
+                Harvey
               </p>
               <h1 className="truncate font-display text-[19px] font-semibold leading-tight tracking-tight">
                 {t.title}
@@ -149,7 +149,7 @@ export function AppShell() {
           <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-1 px-4 py-4 text-[11.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
             <p>
               © {new Date().getFullYear()}{" "}
-              {settings?.businessName ?? "Meridian Lending Co."}
+              {settings?.businessName ?? "Harvey Enterprise"}
               <span className="mx-2 text-border sm:hidden" aria-hidden>·</span>
               <span className="block sm:inline"> Loan Management System</span>
             </p>

@@ -24,7 +24,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Meridian Lending Co. — Loan Management",
+  title: "Harvey Enterprise — Loan Management",
   description:
     "Professional loan portfolio management for private lending businesses: clients, loans, collections, and reporting.",
 };
