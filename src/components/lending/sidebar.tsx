@@ -199,7 +199,7 @@ function SidebarWordmark() {
   const paint = `url(#${gradId})`;
   return (
     <svg
-      viewBox="0 0 216 32"
+      viewBox="0 0 216 26"
       width="100%"
       aria-hidden
       className="font-aurath block"
@@ -212,12 +212,10 @@ function SidebarWordmark() {
       </defs>
       <text
         x="0"
-        y="24"
-        fontSize="22"
-        fontWeight="600"
+        y="20"
+        fontSize="18"
+        fontWeight="400"
         fill={paint}
-        textLength="214"
-        lengthAdjust="spacingAndGlyphs"
       >
         Aurath Solutions
       </text>

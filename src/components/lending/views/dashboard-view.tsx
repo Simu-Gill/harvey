@@ -51,7 +51,7 @@ import { cn } from "@/lib/utils";
 import type { DashboardDTO, MonthPointDTO } from "@/lib/types";
 import { KpiCard } from "../kpi-card";
 import { Money, useCurrency } from "../money";
-import { statusLabel } from "../status-badge";
+import { StatusBadge, statusLabel } from "../status-badge";
 import { ClientAvatar } from "../client-avatar";
 import { EmptyState } from "../empty-state";
 import { PageSkeleton } from "../app-shell";
@@ -492,9 +492,11 @@ export function DashboardView() {
         </Card>
       </div>
 
-      {/* Activity + attention — twin tables, equal height, 7 rows peeking */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card className="card-lux flex flex-col overflow-hidden lg:col-span-2">
+      {/* Activity + attention — twin tables, equal height, 7 rows peeking.
+          Watchlist gets the wider 2-of-5 share; Split column removed from
+          activity so both tables read comfortably. */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
+        <Card className="card-lux flex flex-col overflow-hidden lg:col-span-3">
           <CardHeader className="border-b">
             <div>
               <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
@@ -527,7 +529,6 @@ export function DashboardView() {
                     <TableHead className="pl-6">Client</TableHead>
                     <TableHead className="hidden md:table-cell">Loan</TableHead>
                     <TableHead className="hidden md:table-cell">Date</TableHead>
-                    <TableHead className="hidden text-right lg:table-cell">Split</TableHead>
                     <TableHead className="pr-6 text-right">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -557,14 +558,6 @@ export function DashboardView() {
                       <TableCell className="hidden text-[12.5px] tabular-nums text-muted-foreground md:table-cell">
                         {fmtDateShort(p.date)}
                       </TableCell>
-                      <TableCell className="hidden text-right lg:table-cell">
-                        <span className="rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700 tabular-nums dark:bg-amber-500/10 dark:text-amber-300">
-                          {fmtMoney(p.interestPart, currency)} int
-                        </span>{" "}
-                        <span className="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 tabular-nums dark:bg-emerald-500/10 dark:text-emerald-300">
-                          {fmtMoney(p.principalPart, currency)} prin
-                        </span>
-                      </TableCell>
                       <TableCell className="pr-6 text-right font-display text-[14.5px] font-semibold">
                         <Money value={p.amount} />
                       </TableCell>
@@ -576,7 +569,7 @@ export function DashboardView() {
           )}
         </Card>
 
-        <Card className="card-lux flex flex-col overflow-hidden">
+        <Card className="card-lux flex flex-col overflow-hidden lg:col-span-2">
           <CardHeader className="flex-row items-center justify-between border-b">
             <div>
               <p className="text-[10px] font-semibold tracking-[0.12em] text-red-600 uppercase dark:text-red-400">
@@ -599,7 +592,8 @@ export function DashboardView() {
                 <TableHeader className="thead-lux sticky top-0 z-10">
                   <TableRow className="hover:bg-transparent">
                     <TableHead className="pl-6">Client</TableHead>
-                    <TableHead className="w-40 pr-6 text-right">Balance</TableHead>
+                    <TableHead className="w-[104px] text-center">Status</TableHead>
+                    <TableHead className="w-36 pr-6 text-right">Balance</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -632,18 +626,12 @@ export function DashboardView() {
                             <p className="truncate text-[13.5px] font-medium">{l.clientName}</p>
                             <p className="truncate text-[11.5px] text-muted-foreground">
                               {l.reference}
-                              {l.status === "overdue" ? (
-                                <span className="font-medium text-red-600 dark:text-red-400">
-                                  {" "}· {l.daysOverdue}d late
-                                </span>
-                              ) : (
-                                <span className="font-medium text-amber-600 dark:text-amber-400">
-                                  {" "}· behind
-                                </span>
-                              )}
                             </p>
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <StatusBadge status={l.status} className="px-2 py-0 text-[10.5px]" />
                       </TableCell>
                       <TableCell className="pr-6 text-right">
                         <span className="inline-flex items-center gap-1.5">
