@@ -10,7 +10,6 @@ import { HandCoins, Landmark, Menu, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApp, type View } from "./store";
-import { useSettings } from "./queries";
 import { MobileSidebar, Sidebar } from "./sidebar";
 import { DashboardView } from "./views/dashboard-view";
 import { ClientsView } from "./views/clients-view";
@@ -49,7 +48,6 @@ function ThemeToggle() {
 
 export function AppShell() {
   const view = useApp((s) => s.view);
-  const { data: settings } = useSettings();
   const [menuOpen, setMenuOpen] = useState(false);
 
   // hash-based view routing (#/clients) so refresh keeps context
@@ -123,7 +121,7 @@ export function AppShell() {
           </div>
         </header>
 
-        {/* Content — the only scrollable region, so the footer stays frozen */}
+        {/* Content — the only scrollable region */}
         <main className="flex-1 overflow-y-auto overscroll-contain">
           <div className="mx-auto w-full max-w-[1440px] px-4 py-6 sm:px-6 sm:py-8">
             <AnimatePresence mode="wait">
@@ -143,23 +141,6 @@ export function AppShell() {
             </AnimatePresence>
           </div>
         </main>
-
-        {/* Frozen footer — pinned to the bottom of the viewport on every menu */}
-        <footer className="shrink-0 border-t bg-card/60 pb-[env(safe-area-inset-bottom)]">
-          <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-1 px-4 py-4 text-[11.5px] text-muted-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6">
-            <p>
-              © {new Date().getFullYear()}{" "}
-              {settings?.businessName ?? "Harvey Enterprise"}
-              <span className="mx-2 text-border sm:hidden" aria-hidden>·</span>
-              <span className="block sm:inline"> Loan Management System</span>
-            </p>
-            <p className="flex items-center gap-2 tabular-nums">
-              <span className="pulse-dot text-emerald-500" aria-hidden />
-              Confidential — internal use only
-              {settings?.licence ? ` · ${settings.licence}` : ""}
-            </p>
-          </div>
-        </footer>
       </div>
 
       {/* Overlays */}

@@ -90,16 +90,16 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       <nav className="flex-1 space-y-5 overflow-y-auto px-3 pt-4 pb-3 scrollbar-slim">
         {NAV.map((group) => (
           <div key={group.section}>
-            <div className="flex items-center gap-2.5 px-2.5 pb-2">
+            <div className="flex items-center gap-2.5 px-3 pb-1.5 pt-1">
               <p className="text-[10px] font-semibold tracking-[0.18em] text-stone-500 uppercase">
                 {group.section}
               </p>
               <span
                 aria-hidden
-                className="h-px flex-1 bg-gradient-to-r from-white/[0.1] to-transparent"
+                className="h-px flex-1 bg-white/[0.06]"
               />
             </div>
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {group.items.map((item) => {
                 const active = view === item.view;
                 const Icon = item.icon;
@@ -112,39 +112,36 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       }}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group relative flex w-full items-center gap-3 rounded-xl py-[7px] pr-2.5 pl-2.5 text-[13.5px] font-medium transition-all duration-200",
+                        "group relative flex w-full items-center gap-2.5 rounded-lg py-[7px] pr-2 pl-3 text-[13px] font-medium transition-colors duration-150",
                         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/60",
                         active
-                          ? "bg-gradient-to-r from-emerald-400/[0.17] via-emerald-400/[0.07] to-transparent text-emerald-50 ring-1 ring-emerald-300/[0.14] shadow-[inset_0_1px_0_oklch(1_0_0/0.07),0_10px_24px_-14px_oklch(0.696_0.17_162/0.5)]"
-                          : "text-stone-400 hover:bg-white/[0.05] hover:text-stone-100"
+                          ? "bg-emerald-400/[0.12] text-emerald-50"
+                          : "text-stone-400 hover:bg-white/[0.045] hover:text-stone-100"
                       )}
                     >
                       {active && (
                         <span
                           aria-hidden
-                          className="absolute top-2 bottom-2 -left-2 w-[3px] rounded-full bg-gradient-to-b from-emerald-300 to-teal-500 shadow-[0_0_12px_oklch(0.696_0.17_162/0.85)]"
+                          className="absolute top-1.5 bottom-1.5 -left-2 w-[2.5px] rounded-full bg-emerald-300/90"
                         />
                       )}
-                      <span
+                      <Icon
                         className={cn(
-                          "flex size-8 shrink-0 items-center justify-center rounded-lg ring-1 ring-inset transition-all duration-200",
+                          "size-[15px] shrink-0 transition-colors",
                           active
-                            ? "bg-emerald-400/[0.18] text-emerald-300 ring-emerald-300/20"
-                            : "bg-white/[0.05] text-stone-400 ring-white/[0.06] group-hover:scale-105 group-hover:bg-emerald-400/10 group-hover:text-emerald-200"
+                            ? "text-emerald-300"
+                            : "text-stone-500 group-hover:text-stone-300"
                         )}
-                      >
-                        <Icon className="size-4" aria-hidden />
-                      </span>
-                      <span className="flex-1 text-left tracking-[0.01em]">
-                        {item.label}
-                      </span>
+                        aria-hidden
+                      />
+                      <span className="flex-1 text-left">{item.label}</span>
                       {item.view === "loans" && activeLoans > 0 && (
                         <span
                           className={cn(
-                            "rounded-full px-2 py-0.5 text-[11px] tabular-nums ring-1",
+                            "rounded-full px-1.5 py-px text-[10.5px] tabular-nums",
                             active
-                              ? "bg-emerald-400/[0.16] text-emerald-200 ring-emerald-300/25"
-                              : "bg-white/[0.07] text-stone-300 ring-white/10"
+                              ? "bg-emerald-400/[0.14] text-emerald-200"
+                              : "bg-white/[0.06] text-stone-400"
                           )}
                         >
                           {activeLoans}
@@ -153,18 +150,17 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       {item.view === "clients" && clients && (
                         <span
                           className={cn(
-                            "rounded-full px-2 py-0.5 text-[11px] tabular-nums ring-1",
+                            "rounded-full px-1.5 py-px text-[10.5px] tabular-nums",
                             active
-                              ? "bg-emerald-400/[0.16] text-emerald-200 ring-emerald-300/25"
-                              : "bg-white/[0.07] text-stone-300 ring-white/10"
+                              ? "bg-emerald-400/[0.14] text-emerald-200"
+                              : "bg-white/[0.06] text-stone-400"
                           )}
                         >
                           {clients.length}
                         </span>
                       )}
                       {item.view === "payments" && overdue > 0 && (
-                        <span className="flex items-center gap-1.5 rounded-full bg-red-500/15 px-2 py-0.5 text-[11px] tabular-nums text-red-300 ring-1 ring-red-400/20">
-                          <span aria-hidden className="size-1.5 rounded-full bg-red-400/80" />
+                        <span className="rounded-full bg-red-500/[0.13] px-1.5 py-px text-[10.5px] tabular-nums text-red-300/90">
                           {overdue} late
                         </span>
                       )}
@@ -177,15 +173,14 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
-      {/* Footer of sidebar — Aurath Solutions wordmark */}
-      <div className="relative shrink-0 border-t border-white/[0.06] px-5 pt-3.5 pb-3.5">
-        {/* Stacked, full-width justified lockup at a true 70px size.
-            SVG textLength keeps each word exactly filling the column in
-            any font of the stack (Avallon Alt when installed).
+      {/* Footer of sidebar — Aurath Solutions wordmark, one line */}
+      <div className="relative shrink-0 border-t border-white/[0.06] px-5 pt-3 pb-3">
+        {/* Single-line lockup: SVG textLength fits "Aurath Solutions"
+            into exactly one row at a modest size, in Avallon Alt.
             The gradient id is unique per sidebar instance so the mobile
             drawer never resolves the hidden desktop sidebar's paint. */}
         <SidebarWordmark />
-        <p className="mt-2 text-left text-[10.5px] tracking-wide text-stone-500">
+        <p className="mt-1.5 text-left text-[10.5px] tracking-wide text-stone-500">
           © {new Date().getFullYear()} ·{" "}
           <a
             href="mailto:hi@aurath.net"
@@ -204,11 +199,10 @@ function SidebarWordmark() {
   const paint = `url(#${gradId})`;
   return (
     <svg
-      viewBox="0 0 216 116"
+      viewBox="0 0 216 32"
       width="100%"
       aria-hidden
       className="font-aurath block"
-      style={{ overflow: "visible" }}
     >
       <defs>
         <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
@@ -218,25 +212,14 @@ function SidebarWordmark() {
       </defs>
       <text
         x="0"
-        y="50"
-        fontSize="70"
+        y="24"
+        fontSize="22"
         fontWeight="600"
         fill={paint}
-        textLength="216"
+        textLength="214"
         lengthAdjust="spacingAndGlyphs"
       >
-        Aurath
-      </text>
-      <text
-        x="0"
-        y="108"
-        fontSize="70"
-        fontWeight="600"
-        fill={paint}
-        textLength="216"
-        lengthAdjust="spacingAndGlyphs"
-      >
-        Solutions
+        Aurath Solutions
       </text>
     </svg>
   );
