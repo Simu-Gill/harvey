@@ -51,28 +51,49 @@ function ThemeToggle() {
 
 export function AppShell() {
   const { data: session } = useSession();
-  const canManage = session?.user.role !== "partner";
-  const view = useApp((s) => s.view);
+const canManage =
+  session?.user?.role === "owner" ||
+  session?.user?.role === "super_admin";
+    const view = useApp((s) => s.view);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // hash-based view routing (#/clients) so refresh keeps context
-  useEffect(() => {
-    const fromHash = () => {
-      const h = window.location.hash.replace(/^#\/?/, "");
-      const valid = ["dashboard", "clients", "loans", "payments", "reports", "admin"];
-      if (valid.includes(h)) useApp.setState({ view: h as View });
-    };
-    fromHash();
-    window.addEventListener("hashchange", fromHash);
-    return () => window.removeEventListener("hashchange", fromHash);
-  }, []);
+  // Clean URL-based view routing
+useEffect(() => {
+  const fromPath = () => {
+    const path = window.location.pathname.replace(/^\/|\/$/g, "");
+    const valid = [
+      "dashboard",
+      "clients",
+      "loans",
+      "payments",
+      "reports",
+      "admin",
+    ];
 
-  useEffect(() => {
-    const target = `#/${view}`;
-    if (window.location.hash !== target) {
-      window.history.replaceState(null, "", target);
+    if (valid.includes(path)) {
+      useApp.setState({ view: path as View });
     }
-  }, [view]);
+  };
+
+  fromPath();
+
+  const unsubscribe = useApp.subscribe((state, previousState) => {
+    if (state.view !== previousState.view) {
+      const target = `/${state.view}`;
+
+      if (window.location.pathname !== target) {
+        window.history.pushState(null, "", target);
+      }
+    }
+  });
+
+  window.addEventListener("popstate", fromPath);
+
+  return () => {
+    unsubscribe();
+    window.removeEventListener("popstate", fromPath);
+  };
+}, []);
 
   const t = TITLES[view];
 
@@ -150,7 +171,7 @@ export function AppShell() {
                 {view === "loans" && <LoansView />}
                 {view === "payments" && <PaymentsView />}
                 {view === "reports" && <ReportsView />}
-                {view === "admin" && session?.user.role === "super_admin" && <AdminView />}
+                {view === "admin" && session?.user?.role === "super_admin" && <AdminView />}
               </motion.div>
             </AnimatePresence>
           </div>
