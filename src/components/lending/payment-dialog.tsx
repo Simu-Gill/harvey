@@ -5,7 +5,7 @@
 // and what remains — before you save.
 
 import { useState } from "react";
-import { Loader2, Wallet } from "lucide-react";
+import { Landmark, Loader2, Wallet } from "lucide-react";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -152,21 +152,79 @@ function PaymentForm({
           Loan <span className="text-red-500">*</span>
         </Label>
         {locked && loan ? (
-          <div className="rounded-lg border bg-muted/40 px-3.5 py-2.5">
-            <p className="text-[13.5px] font-medium">{loan.clientName}</p>
-            <p className="text-[12px] text-muted-foreground">
-              {loan.reference} · balance <Money value={loan.balance} />
-            </p>
+          <div className="flex items-center gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50/60 px-3.5 py-3 dark:border-emerald-900/70 dark:bg-emerald-950/20">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-emerald-600 text-white shadow-sm">
+              <Landmark className="size-4" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[13.5px] font-semibold">{loan.clientName}</p>
+              <p className="mt-0.5 text-[11.5px] text-muted-foreground">
+                {loan.reference} · {fmtMoney(loan.monthlyInstallment)}/month
+              </p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Balance</p>
+              <p className="mt-0.5 text-[13px] font-semibold tabular-nums"><Money value={loan.balance} /></p>
+            </div>
           </div>
         ) : (
           <Select value={loanId || undefined} onValueChange={setLoanId}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select loan…" />
+            <SelectTrigger
+              className={cn(
+                "h-auto min-h-14 w-full rounded-xl px-3.5 py-2.5 text-left",
+                loan &&
+                  "border-emerald-200 bg-emerald-50/70 shadow-[0_1px_0_rgba(5,150,105,0.06)] hover:bg-emerald-50 dark:border-emerald-900/70 dark:bg-emerald-950/25 dark:hover:bg-emerald-950/35"
+              )}
+            >
+              {loan ? (
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300">
+                    <Landmark className="size-4" />
+                  </span>
+                  <span className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_5.75rem_5.75rem] items-center gap-3">
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13.5px] font-semibold text-foreground">{loan.clientName}</span>
+                      <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">{loan.reference}</span>
+                    </span>
+                    <span className="text-right">
+                      <span className="block text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Monthly</span>
+                      <span className="mt-0.5 block text-[12px] font-medium tabular-nums text-foreground">{fmtMoney(loan.monthlyInstallment)}</span>
+                    </span>
+                    <span className="text-right">
+                      <span className="block text-[9px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Balance</span>
+                      <span className="mt-0.5 block text-[12px] font-semibold tabular-nums text-foreground">{fmtMoney(loan.balance)}</span>
+                    </span>
+                  </span>
+                </div>
+              ) : (
+                <div className="flex flex-1 items-center gap-3 text-muted-foreground">
+                  <span className="flex size-8 items-center justify-center rounded-lg bg-muted">
+                    <Landmark className="size-4" />
+                  </span>
+                  <span className="text-[13px]">Choose a client loan</span>
+                </div>
+              )}
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="max-h-72 rounded-xl p-1 [&_[data-slot=select-scroll-down-button]]:hidden [&_[data-slot=select-scroll-up-button]]:hidden [&_[data-slot=select-viewport]]:pt-0">
+              <div className="sticky top-0 z-20 grid grid-cols-[minmax(0,1fr)_6rem_6rem] gap-3 rounded-t-[10px] border-b border-emerald-200/80 bg-emerald-100/95 pb-2 pl-3 pr-9 pt-2 text-[9px] font-bold uppercase tracking-[0.09em] text-emerald-900 shadow-[0_1px_0_rgba(5,150,105,0.06)] backdrop-blur-sm dark:border-emerald-800/80 dark:bg-emerald-950/95 dark:text-emerald-200">
+                <span>Client &amp; loan</span>
+                <span className="text-right">Monthly</span>
+                <span className="pr-1 text-right">Balance</span>
+              </div>
               {activeLoans.map((l) => (
-                <SelectItem key={l.id} value={l.id}>
-                  {l.clientName} — {l.reference} (bal {fmtMoney(l.balance)})
+                <SelectItem
+                  key={l.id}
+                  value={l.id}
+                  className="my-0.5 rounded-lg border border-transparent bg-muted/20 py-2.5 pr-9 pl-3 even:bg-emerald-50/45 focus:border-emerald-200 focus:bg-emerald-50 data-[state=checked]:border-emerald-200 data-[state=checked]:bg-emerald-100/80 dark:even:bg-emerald-950/20 dark:focus:border-emerald-800 dark:focus:bg-emerald-950/40 dark:data-[state=checked]:border-emerald-800 dark:data-[state=checked]:bg-emerald-900/35"
+                >
+                  <span className="grid w-[calc(var(--radix-select-trigger-width)-3.5rem)] min-w-0 shrink-0 grid-cols-[minmax(0,1fr)_6rem_6rem] items-center gap-3">
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13px] font-semibold">{l.clientName}</span>
+                      <span className="mt-0.5 block truncate text-[10.5px] text-muted-foreground">{l.reference}</span>
+                    </span>
+                    <span className="text-right text-[11.5px] font-medium tabular-nums">{fmtMoney(l.monthlyInstallment)}</span>
+                    <span className="pr-1 text-right text-[11.5px] font-semibold tabular-nums">{fmtMoney(l.balance)}</span>
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
@@ -174,11 +232,22 @@ function PaymentForm({
         )}
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-[1.2fr_1fr_1fr]">
         <div className="space-y-1.5">
-          <Label className="text-[12.5px] text-muted-foreground">
-            Amount received <span className="text-red-500">*</span>
-          </Label>
+          <div className="flex items-center justify-between gap-2">
+            <Label className="text-[12.5px] text-muted-foreground">
+              Amount received <span className="text-red-500">*</span>
+            </Label>
+            {loan && (
+              <button
+                type="button"
+                onClick={() => setAmount(String(loan.balance))}
+                className="shrink-0 text-[10.5px] font-semibold text-emerald-700 hover:underline dark:text-emerald-400"
+              >
+                Full balance
+              </button>
+            )}
+          </div>
           <Input
             type="number"
             min={0}
@@ -188,27 +257,15 @@ function PaymentForm({
             onChange={(e) => setAmount(e.target.value)}
             className={cn(exceeds && "border-red-400 focus-visible:ring-red-300")}
           />
-          {loan && (
-            <button
-              type="button"
-              onClick={() => setAmount(String(loan.balance))}
-              className="text-[11.5px] font-medium text-emerald-700 hover:underline dark:text-emerald-400"
-            >
-              Pay full balance ({fmtMoney(loan.balance)})
-            </button>
-          )}
         </div>
         <div className="space-y-1.5">
           <Label className="text-[12.5px] text-muted-foreground">Date</Label>
           <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1.5">
           <Label className="text-[12.5px] text-muted-foreground">Method</Label>
           <Select value={method} onValueChange={setMethod}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -220,14 +277,16 @@ function PaymentForm({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-[12.5px] text-muted-foreground">Note</Label>
-          <Input
-            placeholder="Optional payment note"
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-          />
-        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <Label className="text-[12.5px] text-muted-foreground">Note</Label>
+        <Input
+          placeholder="Optional payment note"
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          className="w-full"
+        />
       </div>
 
       {/* allocation preview */}

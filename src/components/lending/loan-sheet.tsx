@@ -64,7 +64,7 @@ export function LoanSheet() {
           </div>
         ) : (
           <>
-            <SheetHeader className="border-b bg-muted/40 p-6">
+            <SheetHeader className="border-b bg-muted/40 p-6 pr-16">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
                   <SheetTitle className="font-display text-xl leading-tight">
@@ -157,21 +157,6 @@ export function LoanSheet() {
                     )}
                     style={{ width: `${Math.min(100, Math.round(loan.progress * 100))}%` }}
                   />
-                </div>
-                {/* expected marker */}
-                <div className="relative mt-1 h-4">
-                  <div
-                    className="absolute -top-[18px] flex flex-col items-center"
-                    style={{
-                      left: `${Math.min(
-                        100,
-                        Math.round((loan.expectedToDate / loan.totalDue) * 100)
-                      )}%`,
-                      transform: "translateX(-50%)",
-                    }}
-                  >
-                    <span className="text-[10px] font-medium text-muted-foreground">▼ expected</span>
-                  </div>
                 </div>
                 <ScheduleNote loan={loan} />
                 <div className="mt-3 grid grid-cols-2 gap-3 text-[12.5px] sm:grid-cols-4">
@@ -288,27 +273,57 @@ function ScheduleNote({ loan }: { loan: NonNullable<ReturnType<typeof useLoanDet
       </p>
     );
   }
-  const ahead = loan.variance >= 0;
+  const onSchedule = Math.abs(loan.variance) < 0.005;
+  const ahead = loan.variance > 0;
+  const overdue = loan.status === "overdue";
+  const beforeFirstDue = loan.expectedToDate <= 0.005 && loan.paidTotal > 0;
   return (
     <p
       className={cn(
-        "mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium",
-        ahead
+        "mt-2 inline-flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-full px-3 py-1 text-[12px] font-medium",
+        overdue
+          ? "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300"
+          : ahead || onSchedule || beforeFirstDue
           ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-          : loan.status === "overdue"
-            ? "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300"
-            : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
+          : "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
       )}
     >
-      {ahead ? <TrendingUp className="size-3.5" /> : <TrendingDown className="size-3.5" />}
-      <span className="tabular-nums">
-        {ahead
-          ? `${fmtMoney(loan.variance)} ahead of schedule`
-          : `${fmtMoney(Math.abs(loan.variance))} behind schedule`}
-      </span>
-      <span className="font-normal opacity-80">
-        (expected <Money value={loan.expectedToDate} /> by today)
-      </span>
+      {overdue || (!ahead && !onSchedule) ? (
+        <TrendingDown className="size-3.5" />
+      ) : (
+        <TrendingUp className="size-3.5" />
+      )}
+      {overdue ? (
+        <>
+          <span className="tabular-nums">{fmtMoney(loan.balance)} overdue</span>
+          <span className="font-normal opacity-80">
+            · {fmtMoney(loan.paidTotal)} of {fmtMoney(loan.totalDue)} paid
+          </span>
+        </>
+      ) : beforeFirstDue ? (
+        <>
+          <span>Early payment received</span>
+          <span className="font-normal tabular-nums opacity-80">
+            · {fmtMoney(loan.paidTotal)} paid before the first instalment
+          </span>
+        </>
+      ) : onSchedule ? (
+        <>
+          <span>On schedule</span>
+          <span className="font-normal tabular-nums opacity-80">
+            · {fmtMoney(loan.paidTotal)} paid as expected
+          </span>
+        </>
+      ) : (
+        <>
+          <span className="tabular-nums">
+            {fmtMoney(Math.abs(loan.variance))} {ahead ? "ahead of" : "behind"} schedule
+          </span>
+          <span className="font-normal tabular-nums opacity-80">
+            · {fmtMoney(loan.paidTotal)} paid; {fmtMoney(loan.expectedToDate)} scheduled by today
+          </span>
+        </>
+      )}
     </p>
   );
 }

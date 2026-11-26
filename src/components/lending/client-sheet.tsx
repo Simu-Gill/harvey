@@ -64,7 +64,7 @@ export function ClientSheet() {
   return (
     <Sheet open={!!clientSheetId} onOpenChange={(o) => !o && closeClient()}>
       <SheetContent className="flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
-        <SheetHeader className="space-y-0 border-b bg-muted/40 p-6">
+        <SheetHeader className="space-y-0 border-b bg-muted/40 p-6 pr-16">
           {isLoading || !client ? (
             <div className="space-y-2">
               <SheetTitle className="sr-only">Loading client</SheetTitle>
@@ -85,7 +85,6 @@ export function ClientSheet() {
                   {client.activeLoanCount > 0 && <StatusBadge status={client.health} />}
                 </SheetDescription>
               </div>
-              <StatusBadge status={client.health} className="mt-1" />
             </div>
           )}
 

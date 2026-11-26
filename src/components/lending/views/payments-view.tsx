@@ -239,7 +239,7 @@ export function PaymentsView() {
                           <span className="flex items-center gap-2">
                             <ClientAvatar name={p.recordedBy} className="size-6 text-[10px]" />
                             <span className="text-[12.5px] text-muted-foreground">
-                              {p.recordedBy}
+                              {p.recordedBy.trim().split(/\s+/)[0]}
                             </span>
                           </span>
                         ) : (

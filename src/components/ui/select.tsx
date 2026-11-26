@@ -71,6 +71,7 @@ function SelectContent({
       >
         <SelectScrollUpButton />
         <SelectPrimitive.Viewport
+          data-slot="select-viewport"
           className={cn(
             "p-1",
             position === "popper" &&
@@ -117,7 +118,9 @@ function SelectItem({
           <CheckIcon className="size-4" />
         </SelectPrimitive.ItemIndicator>
       </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      <SelectPrimitive.ItemText className="min-w-0 flex-1">
+        {children}
+      </SelectPrimitive.ItemText>
     </SelectPrimitive.Item>
   )
 }
