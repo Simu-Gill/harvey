@@ -111,17 +111,31 @@ export interface Allocation {
   accruedInterestDue: number;
 }
 
-/** Interest accrued so far (evenly across the term, capped at total). */
+/**
+ * Interest due for payment allocation.
+ *
+ * The first installment period is billable immediately, so a payment made in
+ * the loan's start month still clears one month's interest before principal.
+ * Later periods remain calendar-based and prior interest payments are deducted
+ * by allocatePayment, preventing split payments from charging interest twice.
+ */
 export function accruedInterestOf(loan: LoanCore, at: Date): number {
   const ti = totalInterestOf(loan);
-  const m = monthsElapsedOf(loan, at);
-  return round2((ti * m) / loan.termMonths);
+  const loanMonth = startOfMonth(new Date(loan.startDate)).getTime();
+  const paymentMonth = startOfMonth(at).getTime();
+  if (paymentMonth < loanMonth) return 0;
+
+  const periodsDue = Math.min(
+    loan.termMonths,
+    Math.max(1, monthsElapsedOf(loan, at))
+  );
+  return round2((ti * periodsDue) / loan.termMonths);
 }
 
 /**
  * Allocation of a payment — matches how the business actually thinks:
- *   1. first, the interest that has ACCRUED so far is cleared
- *      (e.g. $3,000 @ 10%/mo → $300 due after each month)
+ *   1. first, the interest due for the current installment period is cleared
+ *      (e.g. RM3,000 @ 10%/mo → RM300 interest in the first payment)
  *   2. whatever remains reduces the PRINCIPAL
  *   3. any surplus beyond outstanding principal pre-pays remaining
  *      (not-yet-accrued) interest — never the reverse.
