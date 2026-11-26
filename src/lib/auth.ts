@@ -65,27 +65,34 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
         loginFailures.delete(key);
-        return {
-          id: user.id,
-          name: user.name,
-          username: user.username,
-          role: user.role as UserRole,
-          partnerId: user.partnerId,
-          image: user.profileImage,
-        };
+       return {
+  id: user.id,
+  name: user.name,
+  username: user.username,
+  role: user.role as UserRole,
+  partnerId: user.partnerId,
+  image: null,
+};
       },
     }),
   ],
   callbacks: {
     jwt({ token, user }) {
-      if (user) {
-        token.id = user.id;
-        token.username = user.username;
-        token.role = user.role;
-        token.partnerId = user.partnerId;
-      }
-      return token;
-    },
+  if (user) {
+    token.id = user.id;
+    token.username = user.username;
+    token.role = user.role;
+    token.partnerId = user.partnerId;
+  }
+
+  // Prevent profile images from bloating session cookies
+  delete token.picture;
+  delete token.image;
+  delete token.profileImage;
+  delete token.profilePicture;
+
+  return token;
+},
     async session({ session, token }) {
       if (session.user) {
         const current = await db.user.findUnique({
