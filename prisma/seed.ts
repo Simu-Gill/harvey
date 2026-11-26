@@ -8,7 +8,7 @@
 // Payment interest/principal splits are computed with the SAME
 // allocation engine the live API uses (src/lib/loan-math.ts).
 
-import { PrismaClient } from "../src/generated/prisma";
+import { PrismaClient } from '@prisma/client';
 import { subMonths, subDays, getDaysInMonth, set } from "date-fns";
 import {
   totalDueOf,
