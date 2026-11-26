@@ -86,9 +86,6 @@ function PaymentForm({
   const [date, setDate] = useState(toInputDate());
   const [method, setMethod] = useState("cash");
   const [note, setNote] = useState("");
-  const [recordedBy, setRecordedBy] = useState(() =>
-    typeof window === "undefined" ? "" : window.localStorage.getItem("meridian:recorded-by") ?? ""
-  );
 
   const loan = activeLoans.find((l) => l.id === loanId) ?? null;
 
@@ -121,9 +118,7 @@ function PaymentForm({
         date,
         method,
         note: note.trim() || null,
-        recordedBy: recordedBy.trim() || null,
       });
-      window.localStorage.setItem("meridian:recorded-by", recordedBy.trim());
       toast.success(`${fmtMoney(amt)} received from ${loan.clientName}`, {
         description: `${fmtMoney(preview.interestPart)} interest · ${fmtMoney(preview.principalPart)} principal${
           preview.balanceAfter > 0.005
@@ -148,7 +143,7 @@ function PaymentForm({
       <DialogHeader>
         <DialogTitle className="font-display text-lg">Record Payment</DialogTitle>
         <DialogDescription>
-          Payments clear accrued interest first, then reduce principal.
+          Payments clear interest first, then reduce principal.
         </DialogDescription>
       </DialogHeader>
 
@@ -226,23 +221,13 @@ function PaymentForm({
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-[12.5px] text-muted-foreground">
-            Recorded by
-          </Label>
+          <Label className="text-[12.5px] text-muted-foreground">Note</Label>
           <Input
-            placeholder="Your name"
-            value={recordedBy}
-            onChange={(e) => setRecordedBy(e.target.value)}
+            placeholder="Optional payment note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
           />
         </div>
-      </div>
-      <div className="space-y-1.5">
-        <Label className="text-[12.5px] text-muted-foreground">Note</Label>
-        <Input
-          placeholder="e.g. small lum for now, next payment paying full"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
       </div>
 
       {/* allocation preview */}
