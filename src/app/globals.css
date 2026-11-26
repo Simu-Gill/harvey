@@ -143,18 +143,6 @@
   }
 }
 
-/* ── Avallon Alt (brand wordmark face for the Aurath Solutions lockup) ── */
-@font-face {
-  font-family: "Avallon Alt";
-  src:
-    url("/fonts/AvallonAlt.woff2") format("woff2"),
-    url("/fonts/AvallonAlt.woff") format("woff"),
-    url("/fonts/AvallonAlt.ttf") format("truetype");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
-
 @layer base {
   /* Hide every scrollbar app-wide (pages, tables, panels) while keeping
      full scroll functionality via wheel / trackpad / touch / keyboard. */
@@ -174,12 +162,6 @@
 }
 
 @layer utilities {
-  /* Aurath Solutions wordmark — Avallon Alt is bundled and served from
-     /public/fonts, so it renders identically on every machine */
-  .font-aurath {
-    font-family: "Avallon Alt", "Avallon", var(--font-fraunces), Georgia, serif;
-  }
-
   /* legacy hook: .scrollbar-slim previously showed a slim visible bar;
      now kept only as a no-op so existing class usage stays valid */
   .scrollbar-slim {

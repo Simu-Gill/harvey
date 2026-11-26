@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getClients } from "@/lib/loan-service";
+import { canManage, getAuthUser } from "@/lib/auth";
 
 const clientSchema = z.object({
   name: z.string().min(1, "Name is required").max(120),
   phone: z.string().max(40).optional().nullable(),
-  email: z.string().max(120).optional().nullable(),
   address: z.string().max(200).optional().nullable(),
+  partnerIds: z.array(z.string()).default([]),
   idNumber: z.string().max(60).optional().nullable(),
   occupation: z.string().max(80).optional().nullable(),
   notes: z.string().max(500).optional().nullable(),
@@ -15,7 +16,9 @@ const clientSchema = z.object({
 
 export async function GET() {
   try {
-    const clients = await getClients();
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const clients = await getClients(user.role === "partner" ? user.partnerId ?? undefined : undefined);
     return NextResponse.json(clients);
   } catch (e) {
     console.error("GET /api/clients", e);
@@ -25,6 +28,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canManage(user)) return NextResponse.json({ error: "Partners cannot create clients" }, { status: 403 });
     const body = await req.json();
     const parsed = clientSchema.safeParse(body);
     if (!parsed.success) {
@@ -37,8 +43,8 @@ export async function POST(req: NextRequest) {
       data: {
         name: parsed.data.name,
         phone: parsed.data.phone || null,
-        email: parsed.data.email || null,
         address: parsed.data.address || null,
+        partners: { connect: parsed.data.partnerIds.map((id) => ({ id })) },
         idNumber: parsed.data.idNumber || null,
         occupation: parsed.data.occupation || null,
         notes: parsed.data.notes || null,

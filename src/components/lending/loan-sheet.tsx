@@ -41,6 +41,7 @@ import { StatusBadge } from "./status-badge";
 import { useApp } from "./store";
 import { useDeletePayment, useLoanDetail } from "./queries";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react";
 
 export function LoanSheet() {
   const loanSheetId = useApp((s) => s.loanSheetId);
@@ -345,6 +346,8 @@ function PaymentRow({
   };
   loanId: string;
 }) {
+  const { data: session } = useSession();
+  const canManage = session?.user.role !== "partner";
   const deletePayment = useDeletePayment();
   return (
     <li className="group flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40">
@@ -369,7 +372,7 @@ function PaymentRow({
       <p className="text-[14px] font-semibold tabular-nums">
         <Money value={payment.amount} />
       </p>
-      <AlertDialog>
+      {canManage && <AlertDialog>
         <AlertDialogTrigger asChild>
           <button
             aria-label="Delete payment"
@@ -404,7 +407,7 @@ function PaymentRow({
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
-      </AlertDialog>
+      </AlertDialog>}
     </li>
   );
 }

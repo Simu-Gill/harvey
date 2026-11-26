@@ -9,7 +9,7 @@ import { useSettings } from "./queries";
 
 export function useCurrency() {
   const { data } = useSettings();
-  return data?.currency ?? "USD";
+  return data?.currency ?? "MYR";
 }
 
 export function Money({

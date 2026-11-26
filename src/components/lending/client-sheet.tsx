@@ -7,7 +7,6 @@ import {
   BadgeCheck,
   HandCoins,
   Landmark,
-  Mail,
   MapPin,
   Pencil,
   Phone,
@@ -44,8 +43,11 @@ import { Money } from "./money";
 import { StatusBadge } from "./status-badge";
 import { useApp } from "./store";
 import { useClientDetail, useDeleteClient } from "./queries";
+import { useSession } from "next-auth/react";
 
 export function ClientSheet() {
+  const { data: session } = useSession();
+  const canManage = session?.user.role !== "partner";
   const clientSheetId = useApp((s) => s.clientSheetId);
   const closeClient = useApp((s) => s.closeClient);
   const openLoan = useApp((s) => s.openLoan);
@@ -100,14 +102,14 @@ export function ClientSheet() {
               >
                 <HandCoins className="size-3.5" /> Record Payment
               </Button>
-              <Button
+              {canManage && <Button
                 size="sm"
                 variant="ghost"
                 className="h-8 gap-1.5"
                 onClick={() => openClientDialog(client.id)}
               >
                 <Pencil className="size-3.5" /> Edit
-              </Button>
+              </Button>}
             </div>
           )}
         </SheetHeader>
@@ -142,7 +144,7 @@ export function ClientSheet() {
             {/* Contact */}
             <div className="grid grid-cols-1 gap-x-6 gap-y-3 border-b p-6 sm:grid-cols-2">
               <ContactLine icon={Phone} label="Phone" value={client.phone} />
-              <ContactLine icon={Mail} label="Email" value={client.email} />
+              <ContactLine icon={BadgeCheck} label="Ownership" value={client.partners.length ? client.partners.map((partner) => partner.name).join(", ") : "In-house Client"} />
               <ContactLine icon={MapPin} label="Address" value={client.address} />
               <ContactLine icon={BadgeCheck} label="ID Number" value={client.idNumber} />
             </div>
@@ -257,7 +259,7 @@ export function ClientSheet() {
                 </div>
               )}
 
-              {client.loanCount === 0 && (
+              {canManage && client.loanCount === 0 && (
                 <>
                   <Separator className="my-5" />
                   <AlertDialog>

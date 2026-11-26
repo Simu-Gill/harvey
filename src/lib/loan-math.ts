@@ -87,7 +87,7 @@ export interface PaidTotals {
   principalPaid: number;
 }
 
-export function paidTotalsOf(payments: PaymentLike[]): PaidTotals {
+export function paidTotalsOf(payments: Pick<PaymentLike, "interestPart" | "principalPart">[]): PaidTotals {
   let interestPaid = 0;
   let principalPaid = 0;
   for (const p of payments) {
@@ -129,7 +129,7 @@ export function accruedInterestOf(loan: LoanCore, at: Date): number {
  */
 export function allocatePayment(
   loan: LoanCore,
-  priorPayments: PaymentLike[],
+  priorPayments: Pick<PaymentLike, "interestPart" | "principalPart">[],
   amount: number,
   at: Date = new Date()
 ): Allocation {
@@ -235,7 +235,7 @@ export function buildSchedule(loan: LoanCore) {
   const install = installmentOf(loan);
   const due = totalDueOf(loan);
   const start = startOfMonth(new Date(loan.startDate));
-  const rows = [];
+  const rows: { month: number; dueDate: Date; expectedPayment: number; expectedCumulative: number }[] = [];
   let cumulative = 0;
   for (let m = 1; m <= loan.termMonths; m++) {
     cumulative = round2(cumulative + install);

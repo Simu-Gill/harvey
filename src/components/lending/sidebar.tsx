@@ -3,7 +3,6 @@
 // The signature dark-green sidebar — always dark in both themes,
 // like a private bank's letterhead.
 
-import { useId } from "react";
 import Image from "next/image";
 import {
   BarChart3,
@@ -11,11 +10,14 @@ import {
   Landmark,
   Receipt,
   Users,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import { useApp, type View } from "./store";
 import { useClients, useLoans, useSettings } from "./queries";
 import { cn } from "@/lib/utils";
+import { useSession, signOut } from "next-auth/react";
+import { LogOut } from "lucide-react";
 
 const NAV: { section: string; items: { view: View; label: string; icon: React.ElementType }[] }[] = [
   {
@@ -31,9 +33,14 @@ const NAV: { section: string; items: { view: View; label: string; icon: React.El
     section: "Insights",
     items: [{ view: "reports", label: "Reports", icon: BarChart3 }],
   },
+  {
+    section: "Administration",
+    items: [{ view: "admin", label: "Users & Partners", icon: ShieldCheck }],
+  },
 ];
 
 export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
+  const { data: session } = useSession();
   const { view, setView } = useApp();
   const { data: settings } = useSettings();
   const { data: clients } = useClients();
@@ -87,19 +94,29 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
       />
 
       {/* Nav */}
-      <nav className="flex-1 space-y-5 overflow-y-auto px-3 pt-4 pb-3 scrollbar-slim">
-        {NAV.map((group) => (
+      <nav className="flex-1 space-y-6 overflow-y-auto px-3 pt-5 pb-3 scrollbar-slim">
+        {NAV.filter((group) => group.section !== "Administration" || session?.user.role === "super_admin").map((group) => (
           <div key={group.section}>
-            <div className="flex items-center gap-2.5 px-3 pb-1.5 pt-1">
-              <p className="text-[10px] font-semibold tracking-[0.18em] text-stone-500 uppercase">
+            <div className="flex items-center gap-2.5 px-3 pb-2 pt-1">
+              <p
+                className={cn(
+                  "text-[9.5px] font-semibold tracking-[0.2em] uppercase",
+                  group.section === "Overview"
+                    ? "text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]"
+                    : "text-stone-200"
+                )}
+              >
                 {group.section}
               </p>
               <span
                 aria-hidden
-                className="h-px flex-1 bg-white/[0.06]"
+                className={cn(
+                  "h-px flex-1",
+                  group.section === "Overview" ? "bg-white/60" : "bg-white/[0.28]"
+                )}
               />
             </div>
-            <ul className="space-y-0.5">
+            <ul className="space-y-1">
               {group.items.map((item) => {
                 const active = view === item.view;
                 const Icon = item.icon;
@@ -112,36 +129,37 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       }}
                       aria-current={active ? "page" : undefined}
                       className={cn(
-                        "group relative flex w-full items-center gap-2.5 rounded-lg py-[7px] pr-2 pl-3 text-[13px] font-medium transition-colors duration-150",
+                        "group relative flex h-11 w-full items-center gap-3 rounded-xl border px-2.5 text-[13.5px] font-medium transition-all duration-200",
                         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-400/60",
                         active
-                          ? "bg-emerald-400/[0.12] text-emerald-50"
-                          : "text-stone-400 hover:bg-white/[0.045] hover:text-stone-100"
+                          ? "border-emerald-300/[0.18] bg-gradient-to-r from-emerald-400/[0.2] via-emerald-400/[0.11] to-emerald-300/[0.04] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_8px_24px_-16px_rgba(52,211,153,0.65)]"
+                          : "border-transparent text-stone-400 hover:translate-x-0.5 hover:border-white/[0.08] hover:bg-white/[0.055] hover:text-stone-100"
                       )}
                     >
                       {active && (
                         <span
                           aria-hidden
-                          className="absolute top-1.5 bottom-1.5 -left-2 w-[2.5px] rounded-full bg-emerald-300/90"
+                          className="absolute top-2 bottom-2 left-0 w-[3px] rounded-r-full bg-emerald-300 shadow-[0_0_12px_rgba(110,231,183,0.75)]"
                         />
                       )}
-                      <Icon
+                      <span
                         className={cn(
-                          "size-[15px] shrink-0 transition-colors",
+                          "flex size-7 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
                           active
-                            ? "text-emerald-300"
-                            : "text-stone-500 group-hover:text-stone-300"
+                            ? "bg-emerald-300/[0.14] text-emerald-200 ring-1 ring-emerald-200/[0.13]"
+                            : "bg-white/[0.035] text-stone-500 ring-1 ring-white/[0.04] group-hover:bg-white/[0.07] group-hover:text-stone-200"
                         )}
-                        aria-hidden
-                      />
+                      >
+                        <Icon className="size-[15.5px]" aria-hidden />
+                      </span>
                       <span className="flex-1 text-left">{item.label}</span>
                       {item.view === "loans" && activeLoans > 0 && (
                         <span
                           className={cn(
-                            "rounded-full px-1.5 py-px text-[10.5px] tabular-nums",
+                            "min-w-6 rounded-full px-1.5 py-0.5 text-center text-[10px] font-semibold tabular-nums ring-1 ring-inset",
                             active
-                              ? "bg-emerald-400/[0.14] text-emerald-200"
-                              : "bg-white/[0.06] text-stone-400"
+                              ? "bg-emerald-300/[0.13] text-emerald-100 ring-emerald-200/[0.12]"
+                              : "bg-white/[0.05] text-stone-400 ring-white/[0.05]"
                           )}
                         >
                           {activeLoans}
@@ -150,17 +168,17 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
                       {item.view === "clients" && clients && (
                         <span
                           className={cn(
-                            "rounded-full px-1.5 py-px text-[10.5px] tabular-nums",
+                            "min-w-6 rounded-full px-1.5 py-0.5 text-center text-[10px] font-semibold tabular-nums ring-1 ring-inset",
                             active
-                              ? "bg-emerald-400/[0.14] text-emerald-200"
-                              : "bg-white/[0.06] text-stone-400"
+                              ? "bg-emerald-300/[0.13] text-emerald-100 ring-emerald-200/[0.12]"
+                              : "bg-white/[0.05] text-stone-400 ring-white/[0.05]"
                           )}
                         >
                           {clients.length}
                         </span>
                       )}
                       {item.view === "payments" && overdue > 0 && (
-                        <span className="rounded-full bg-red-500/[0.13] px-1.5 py-px text-[10.5px] tabular-nums text-red-300/90">
+                        <span className="rounded-full bg-red-500/[0.13] px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-red-300/90 ring-1 ring-inset ring-red-300/10">
                           {overdue} late
                         </span>
                       )}
@@ -173,13 +191,23 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
-      {/* Footer of sidebar — Aurath Solutions wordmark, one line */}
-      <div className="relative shrink-0 border-t border-white/[0.06] px-5 pt-3 pb-3">
-        {/* Single-line lockup: SVG textLength fits "Aurath Solutions"
-            into exactly one row at a modest size, in Avallon Alt.
-            The gradient id is unique per sidebar instance so the mobile
-            drawer never resolves the hidden desktop sidebar's paint. */}
-        <SidebarWordmark />
+      {session?.user && <div className="relative mx-3 mb-2 flex items-center gap-3 rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-2.5">
+        <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-emerald-300/15 font-semibold text-emerald-100 ring-2 ring-emerald-300/55 ring-offset-2 ring-offset-[oklch(0.16_0.02_165)]">
+          {session.user.image ? <img src={session.user.image} alt={`${session.user.name ?? "User"} profile`} className="size-full object-cover" /> : (session.user.name?.[0] ?? "U")}
+        </span>
+        <div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-stone-100">{session.user.name}</p><p className="truncate text-[10px] capitalize text-stone-400">{session.user.role.replace("_", " ")}</p></div>
+        <button onClick={() => signOut({ callbackUrl: "/login" })} className="rounded-lg p-2 text-stone-400 hover:bg-white/10 hover:text-white" aria-label="Sign out"><LogOut className="size-4" /></button>
+      </div>}
+
+      {/* Footer of sidebar — supplied Aurath logo */}
+      <div className="relative shrink-0 border-t border-white/[0.06] px-5 pt-3.5 pb-3.5">
+        <Image
+          src="/aurath-wordmark.png"
+          alt="Aurath"
+          width={1000}
+          height={419}
+          className="h-auto w-[82px] object-contain"
+        />
         <p className="mt-1.5 text-left text-[10.5px] tracking-wide text-stone-500">
           © {new Date().getFullYear()} ·{" "}
           <a
@@ -191,35 +219,6 @@ export function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
         </p>
       </div>
     </div>
-  );
-}
-
-function SidebarWordmark() {
-  const gradId = useId();
-  const paint = `url(#${gradId})`;
-  return (
-    <svg
-      viewBox="0 0 216 26"
-      width="100%"
-      aria-hidden
-      className="font-aurath block"
-    >
-      <defs>
-        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="oklch(0.975 0.004 90)" />
-          <stop offset="100%" stopColor="oklch(0.805 0.018 95)" />
-        </linearGradient>
-      </defs>
-      <text
-        x="0"
-        y="20"
-        fontSize="18"
-        fontWeight="400"
-        fill={paint}
-      >
-        Aurath Solutions
-      </text>
-    </svg>
   );
 }
 

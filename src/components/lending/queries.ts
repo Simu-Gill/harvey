@@ -15,6 +15,8 @@ import type {
   PaymentDTO,
   ReportsDTO,
   SettingsDTO,
+  PartnerDTO,
+  UserDTO,
 } from "@/lib/types";
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
@@ -54,6 +56,33 @@ export function useClients() {
   return useQuery<ClientDTO[]>({
     queryKey: ["clients"],
     queryFn: () => api<ClientDTO[]>("/api/clients"),
+  });
+}
+
+export function usePartners() {
+  return useQuery<PartnerDTO[]>({ queryKey: ["partners"], queryFn: () => api<PartnerDTO[]>("/api/partners") });
+}
+
+export function useUsers() {
+  return useQuery<UserDTO[]>({ queryKey: ["users"], queryFn: () => api<UserDTO[]>("/api/users") });
+}
+
+export function useCreatePartner() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (data: Record<string, unknown>) => api("/api/partners", { method: "POST", body: JSON.stringify(data) }), onSuccess: () => qc.invalidateQueries({ queryKey: ["partners"] }) });
+}
+
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({ mutationFn: (data: Record<string, unknown>) => api("/api/users", { method: "POST", body: JSON.stringify(data) }), onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }) });
+}
+
+export function useUpdateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Record<string, unknown> }) =>
+      api(`/api/users/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["users"] }),
   });
 }
 

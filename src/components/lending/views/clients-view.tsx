@@ -32,6 +32,7 @@ import { Money } from "../money";
 import { StatusBadge } from "../status-badge";
 import { useApp } from "../store";
 import { useClients } from "../queries";
+import { useSession } from "next-auth/react";
 
 type HealthFilter = "all" | "on_track" | "behind" | "overdue" | "clean";
 
@@ -56,6 +57,8 @@ const HEALTH_TINT: Record<string, { tint: string; hover: string }> = {
 };
 
 export function ClientsView() {
+  const { data: session } = useSession();
+  const canManage = session?.user.role !== "partner";
   const { data: clients, isLoading } = useClients();
   const openClient = useApp((s) => s.openClient);
   const openClientDialog = useApp((s) => s.openClientDialog);
@@ -114,34 +117,49 @@ export function ClientsView() {
         ))}
       </div>
 
-      <Card className="card-lux overflow-hidden">
-        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center">
-          <div className="relative flex-1">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by name, phone or occupation…"
-              className="pl-9"
-              aria-label="Search clients"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <Select value={filter} onValueChange={(v) => setFilter(v as HealthFilter)}>
-              <SelectTrigger className="w-[170px]" aria-label="Filter by status">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All clients</SelectItem>
-                <SelectItem value="on_track">On track</SelectItem>
-                <SelectItem value="behind">Behind</SelectItem>
-                <SelectItem value="overdue">Overdue</SelectItem>
-                <SelectItem value="clean">No active loans</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button className="gap-1.5 font-medium" onClick={() => openClientDialog()}>
-              <Plus className="size-4" /> New Client
-            </Button>
+      <Card className="card-lux gap-0 overflow-hidden py-0">
+        <div className="relative overflow-hidden border-b border-emerald-200/70 bg-gradient-to-r from-emerald-100 via-teal-50 to-amber-100/80 p-4 dark:border-emerald-500/20 dark:from-emerald-500/[0.16] dark:via-teal-500/[0.1] dark:to-amber-500/[0.09]">
+          <div aria-hidden className="pointer-events-none absolute -top-16 left-24 size-40 rounded-full bg-emerald-300/15 blur-3xl dark:bg-emerald-400/[0.06]" />
+          <div className="relative flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+                <Users className="size-[18px]" aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[9.5px] font-semibold tracking-[0.16em] text-emerald-700 uppercase dark:text-emerald-400">Borrower registry</p>
+                <h2 className="font-display text-[17px] font-semibold leading-tight tracking-tight">Client directory</h2>
+                <p className="mt-0.5 text-[11.5px] text-muted-foreground">Showing {rows.length} of {stats.total} clients</p>
+              </div>
+            </div>
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center xl:justify-end">
+              <div className="relative min-w-0 flex-1 sm:min-w-[260px] xl:w-[300px] xl:flex-none">
+                <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-emerald-700/60 dark:text-emerald-400/70" />
+                <Input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search name, phone or occupation…"
+                  className="h-10 border-emerald-300/80 bg-emerald-50/90 pl-9 shadow-sm dark:border-emerald-500/25 dark:bg-emerald-950/35"
+                  aria-label="Search clients"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Select value={filter} onValueChange={(v) => setFilter(v as HealthFilter)}>
+                  <SelectTrigger className="h-10 w-[170px] border-emerald-300/80 bg-emerald-50/90 shadow-sm dark:border-emerald-500/25 dark:bg-emerald-950/35" aria-label="Filter by status">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All clients</SelectItem>
+                    <SelectItem value="on_track">On track</SelectItem>
+                    <SelectItem value="behind">Behind</SelectItem>
+                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="clean">No active loans</SelectItem>
+                  </SelectContent>
+                </Select>
+                {canManage && <Button className="h-10 gap-1.5 font-medium shadow-sm" onClick={() => openClientDialog()}>
+                  <Plus className="size-4" /> New Client
+                </Button>}
+              </div>
+            </div>
           </div>
         </div>
 

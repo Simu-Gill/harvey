@@ -8,7 +8,7 @@
 // Payment interest/principal splits are computed with the SAME
 // allocation engine the live API uses (src/lib/loan-math.ts).
 
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../src/generated/prisma";
 import { subMonths, subDays, getDaysInMonth, set } from "date-fns";
 import {
   totalDueOf,
@@ -518,7 +518,7 @@ async function main() {
       email: "office@meridianlending.com",
       phone: "+1 (555) 200-0421",
       address: "14 Meridian House, Financial District",
-      currency: "USD",
+      currency: "MYR",
       defaultRate: 10,
       rateUnit: "monthly",
       defaultTerm: 3,

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getLoanDetail } from "@/lib/loan-service";
+import { canManage, getAuthUser } from "@/lib/auth";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -10,13 +11,18 @@ const patchSchema = z.object({
 });
 
 export async function GET(_req: NextRequest, { params }: Params) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await params;
-  const detail = await getLoanDetail(id);
+  const detail = await getLoanDetail(id, user.role === "partner" ? user.partnerId ?? undefined : undefined);
   if (!detail) return NextResponse.json({ error: "Loan not found" }, { status: 404 });
   return NextResponse.json(detail);
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canManage(user)) return NextResponse.json({ error: "Read-only access" }, { status: 403 });
   const { id } = await params;
   const body = await req.json();
   const parsed = patchSchema.safeParse(body);
@@ -30,6 +36,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(_req: NextRequest, { params }: Params) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!canManage(user)) return NextResponse.json({ error: "Read-only access" }, { status: 403 });
   const { id } = await params;
   const paymentCount = await db.payment.count({ where: { loanId: id } });
   if (paymentCount > 0) {

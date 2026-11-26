@@ -185,7 +185,7 @@ export function DashboardView() {
   return (
     <div className="space-y-6">
       {/* KPI row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard
           label="Principal Outstanding"
           value={kpis.outstandingPrincipal}
@@ -207,15 +207,17 @@ export function DashboardView() {
           tone="emerald"
           valueClassName="text-emerald-700 dark:text-emerald-400"
           sub={
-            <span className="inline-flex flex-wrap items-center gap-x-1.5">
+            <span className="flex flex-col items-start gap-0.5">
               <span className="tabular-nums">
-                {fmtMoney(kpis.interestThisMonth, currency)} interest ·{" "}
+                {fmtMoney(kpis.interestThisMonth, currency)} interest
+              </span>
+              <span className="tabular-nums">
                 {fmtMoney(kpis.principalThisMonth, currency)} principal
               </span>
               {lastMonthDelta !== null && (
                 <span
                   className={cn(
-                    "inline-flex items-center gap-0.5 font-medium",
+                    "mt-0.5 inline-flex items-center gap-0.5 font-medium",
                     lastMonthDelta >= 0 ? "text-emerald-600" : "text-red-500"
                   )}
                 >
@@ -446,15 +448,19 @@ export function DashboardView() {
                     ))}
                   </Pie>
                   <Tooltip
+                    wrapperStyle={{ zIndex: 50, pointerEvents: "none" }}
+                    allowEscapeViewBox={{ x: true, y: true }}
+                    reverseDirection={{ x: true, y: false }}
+                    offset={12}
                     content={({ active, payload }) =>
                       active && payload?.length ? (
-                        <div className="rounded-lg border bg-popover px-3 py-2 text-xs shadow-md">
-                          <p className="font-semibold capitalize text-popover-foreground">
+                        <div className="min-w-[132px] rounded-xl border border-white/10 bg-slate-950 px-3 py-2.5 text-xs text-white shadow-xl shadow-black/25">
+                          <p className="font-semibold capitalize text-white">
                             {statusLabel(payload[0].name as string)}
                           </p>
-                          <p className="text-muted-foreground">
+                          <p className="mt-0.5 text-slate-300">
                             {payload[0].payload.count} loans ·{" "}
-                            <span className="font-medium tabular-nums text-popover-foreground">
+                            <span className="font-semibold tabular-nums text-white">
                               {fmtMoney(payload[0].payload.balance, currency)}
                             </span>
                           </p>
@@ -464,7 +470,7 @@ export function DashboardView() {
                   />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <div className="pointer-events-none absolute inset-0 z-0 flex flex-col items-center justify-center">
                 <p className="text-[9.5px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
                   Exposure
                 </p>
@@ -522,7 +528,7 @@ export function DashboardView() {
               />
             </div>
           ) : (
-            <div className="h-[434px] overflow-auto scrollbar-slim">
+            <div className="h-[434px] overflow-y-auto scrollbar-slim">
               <Table>
                 <TableHeader className="thead-lux sticky top-0 z-10">
                   <TableRow className="hover:bg-transparent">

@@ -3,7 +3,7 @@
 // Create / edit client dialog.
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
@@ -20,16 +20,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useApp } from "./store";
-import { useClientDetail, useCreateClient, useUpdateClient } from "./queries";
+import { useClientDetail, useCreateClient, usePartners, useUpdateClient } from "./queries";
 
 const schema = z.object({
   name: z.string().min(1, "Client name is required"),
   phone: z.string().optional(),
-  email: z.string().optional(),
   occupation: z.string().optional(),
   idNumber: z.string().optional(),
   address: z.string().optional(),
+  partnerIds: z.array(z.string()),
   notes: z.string().optional(),
 });
 
@@ -44,11 +45,21 @@ export function ClientDialog() {
   const { data } = useClientDetail(editing ? clientDialogId : null);
   const createClient = useCreateClient();
   const updateClient = useUpdateClient();
+  const { data: partners = [] } = usePartners();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { name: "", phone: "", email: "", occupation: "", idNumber: "", address: "", notes: "" },
+    defaultValues: {
+      name: "",
+      phone: "",
+      occupation: "",
+      idNumber: "",
+      address: "",
+      partnerIds: [],
+      notes: "",
+    },
   });
+  const selectedPartnerIds = useWatch({ control: form.control, name: "partnerIds" });
 
   useEffect(() => {
     if (clientDialogId != null && data?.client) {
@@ -56,19 +67,17 @@ export function ClientDialog() {
       form.reset({
         name: c.name,
         phone: c.phone ?? "",
-        email: c.email ?? "",
         occupation: c.occupation ?? "",
         idNumber: c.idNumber ?? "",
         address: c.address ?? "",
+        partnerIds: c.partners.map((partner) => partner.id),
         notes: c.notes ?? "",
       });
     }
   }, [clientDialogId, data, form]);
 
   const onSubmit = async (values: FormValues) => {
-    const payload = Object.fromEntries(
-      Object.entries(values).map(([k, v]) => [k, v?.trim() ? v.trim() : null])
-    );
+    const payload = Object.fromEntries(Object.entries(values).map(([k, v]) => [k, typeof v === "string" ? (v.trim() || null) : v]));
     try {
       if (editing && clientDialogId) {
         await updateClient.mutateAsync({ id: clientDialogId, data: payload });
@@ -96,7 +105,7 @@ export function ClientDialog() {
           <DialogDescription>
             {editing
               ? "Update the borrower's record."
-              : "Register a borrower — loans can be attached afterwards."}
+              : "Register a borrower — loans can only be attached afterwards."}
           </DialogDescription>
         </DialogHeader>
 
@@ -108,9 +117,6 @@ export function ClientDialog() {
             <Field label="Phone">
               <Input placeholder="+1 (555) 000-0000" {...form.register("phone")} />
             </Field>
-            <Field label="Email">
-              <Input type="email" placeholder="name@example.com" {...form.register("email")} />
-            </Field>
             <Field label="Occupation">
               <Input placeholder="e.g. Market trader" {...form.register("occupation")} />
             </Field>
@@ -119,6 +125,21 @@ export function ClientDialog() {
             </Field>
             <Field label="Address">
               <Input placeholder="Street, area" {...form.register("address")} />
+            </Field>
+            <Field label="Client ownership">
+              <div className="min-h-9 rounded-md border bg-background px-3 py-2">
+                {partners.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">In-house Client</p>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-muted-foreground">No selection means In-house Client</p>
+                    {partners.map((partner) => {
+                      const selected = selectedPartnerIds.includes(partner.id);
+                      return <label key={partner.id} className="flex cursor-pointer items-center gap-2 text-sm"><Checkbox checked={selected} onCheckedChange={(checked) => { const current = form.getValues("partnerIds"); form.setValue("partnerIds", checked ? [...current, partner.id] : current.filter((id) => id !== partner.id), { shouldDirty: true }); }} />{partner.name}</label>;
+                    })}
+                  </div>
+                )}
+              </div>
             </Field>
           </div>
           <Field label="Notes">

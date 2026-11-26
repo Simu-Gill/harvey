@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getLoans, getSettings } from "@/lib/loan-service";
+import { getAuthUser } from "@/lib/auth";
 
 const loanSchema = z.object({
   clientId: z.string().min(1, "Select a client"),
@@ -15,7 +16,9 @@ const loanSchema = z.object({
 
 export async function GET() {
   try {
-    const loans = await getLoans();
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const loans = await getLoans(user.role === "partner" ? user.partnerId ?? undefined : undefined);
     return NextResponse.json(loans);
   } catch (e) {
     console.error("GET /api/loans", e);
@@ -25,6 +28,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const body = await req.json();
     const parsed = loanSchema.safeParse(body);
     if (!parsed.success) {
@@ -34,7 +39,7 @@ export async function POST(req: NextRequest) {
       );
     }
     const d = parsed.data;
-    const client = await db.client.findUnique({ where: { id: d.clientId } });
+    const client = await db.client.findFirst({ where: { id: d.clientId, ...(user.role === "partner" ? { partners: { some: { id: user.partnerId! } } } : {}) } });
     if (!client) return NextResponse.json({ error: "Client not found" }, { status: 400 });
 
     const start = new Date(d.startDate);
@@ -61,6 +66,7 @@ export async function POST(req: NextRequest) {
         termMonths: d.termMonths,
         startDate: start,
         notes: d.notes || null,
+        createdById: user.id,
       },
       include: { client: true, payments: true },
     });

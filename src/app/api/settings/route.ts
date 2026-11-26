@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { getSettings } from "@/lib/loan-service";
+import { canManage, getAuthUser } from "@/lib/auth";
 
 const settingsSchema = z.object({
   businessName: z.string().min(1).max(80),
@@ -17,12 +18,17 @@ const settingsSchema = z.object({
 });
 
 export async function GET() {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const settings = await getSettings();
   return NextResponse.json(settings);
 }
 
 export async function PUT(req: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!canManage(user)) return NextResponse.json({ error: "Read-only access" }, { status: 403 });
     const body = await req.json();
     const parsed = settingsSchema.safeParse(body);
     if (!parsed.success) {

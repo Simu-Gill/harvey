@@ -26,8 +26,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { allocatePayment } from "@/lib/loan-math";
-import { fmtMoney, toInputDate, methodLabel } from "@/lib/format";
-import { PAYMENT_METHODS, type LoanDTO } from "@/lib/types";
+import { fmtMoney, toInputDate } from "@/lib/format";
+import { methodLabel, PAYMENT_METHODS, type LoanDTO } from "@/lib/types";
 import { Money } from "./money";
 import { useApp } from "./store";
 import { useCreatePayment, useLoans } from "./queries";
@@ -239,7 +239,7 @@ function PaymentForm({
       <div className="space-y-1.5">
         <Label className="text-[12.5px] text-muted-foreground">Note</Label>
         <Input
-          placeholder="e.g. Interest only"
+          placeholder="e.g. small lum for now, next payment paying full"
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />

@@ -30,8 +30,17 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# environment files (commit only the safe template)
 .env*
+!.env.example
+
+# local database and generated Prisma engines
+/db/*.db
+/db/*.db-journal
+/src/generated/
+
+# original design uploads (optimized runtime assets live in /public)
+/upload/
 
 # vercel
 .vercel

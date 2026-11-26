@@ -37,8 +37,10 @@ import { toInputDate } from "@/lib/format";
 import { useApp } from "./store";
 import { useClients, useCreateLoan, useSettings } from "./queries";
 import { Money } from "./money";
+import { useSession } from "next-auth/react";
 
 export function LoanDialog() {
+  const { data: session } = useSession();
   const loanDialogClientId = useApp((s) => s.loanDialogClientId);
   const closeLoanDialog = useApp((s) => s.closeLoanDialog);
   const openClientDialog = useApp((s) => s.openClientDialog);
@@ -162,6 +164,8 @@ export function LoanDialog() {
                       ))}
                     </SelectContent>
                   </Select>
+                ) : session?.user.role === "partner" ? (
+                  <p className="rounded-md border px-3 py-2 text-sm text-muted-foreground">No assigned clients are available.</p>
                 ) : (
                   <Button
                     type="button"
@@ -238,7 +242,7 @@ export function LoanDialog() {
                 <Label className="text-[12.5px] text-muted-foreground">Purpose / notes</Label>
                 <Textarea
                   rows={2}
-                  placeholder="e.g. Stock expansion — Kantamanto shop"
+                  placeholder="e.g. Stock expansion — Opening shop"
                   {...form.register("notes")}
                 />
               </div>
@@ -281,7 +285,7 @@ export function LoanDialog() {
                 />
               </dl>
               <p className="mt-4 rounded-md bg-emerald-50 p-2.5 text-[11.5px] leading-relaxed text-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300">
-                Interest is fixed for the full term — it never compounds, and paying early
+                Interest is fixed — it never compounds, and paying late
                 never adds interest.
               </p>
             </div>

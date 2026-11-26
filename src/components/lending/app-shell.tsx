@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { AnimatePresence, motion } from "framer-motion";
-import { HandCoins, Landmark, Menu, Moon, Sun } from "lucide-react";
+import { HandCoins, Landmark, Menu, Moon, Sun, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useApp, type View } from "./store";
@@ -21,6 +21,8 @@ import { LoanSheet } from "./loan-sheet";
 import { ClientDialog } from "./client-dialog";
 import { LoanDialog } from "./loan-dialog";
 import { PaymentDialog } from "./payment-dialog";
+import { useSession } from "next-auth/react";
+import { AdminView } from "./views/admin-view";
 
 const TITLES: Record<View, { title: string; subtitle: string }> = {
   dashboard: { title: "Dashboard", subtitle: "Portfolio performance at a glance" },
@@ -28,6 +30,7 @@ const TITLES: Record<View, { title: string; subtitle: string }> = {
   loans: { title: "Loans", subtitle: "Disbursements, schedules and balances" },
   payments: { title: "Collections Ledger", subtitle: "Every payment received, fully allocated" },
   reports: { title: "Reports", subtitle: "Performance, aging and concentration analysis" },
+  admin: { title: "Access Management", subtitle: "Partners, users and permissions" },
 };
 
 function ThemeToggle() {
@@ -47,6 +50,8 @@ function ThemeToggle() {
 }
 
 export function AppShell() {
+  const { data: session } = useSession();
+  const canManage = session?.user.role !== "partner";
   const view = useApp((s) => s.view);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -54,7 +59,7 @@ export function AppShell() {
   useEffect(() => {
     const fromHash = () => {
       const h = window.location.hash.replace(/^#\/?/, "");
-      const valid = ["dashboard", "clients", "loans", "payments", "reports"];
+      const valid = ["dashboard", "clients", "loans", "payments", "reports", "admin"];
       if (valid.includes(h)) useApp.setState({ view: h as View });
     };
     fromHash();
@@ -116,6 +121,14 @@ export function AppShell() {
                 <Landmark className="size-4" aria-hidden />
                 <span className="hidden md:inline">New Loan</span>
               </Button>
+              {canManage && <Button
+                variant="outline"
+                onClick={() => useApp.getState().openClientDialog()}
+                className="h-9 gap-1.5 border-input bg-card/60 font-medium shadow-sm backdrop-blur hover:bg-card"
+              >
+                <UserPlus className="size-4" aria-hidden />
+                <span className="hidden lg:inline">New Client</span>
+              </Button>}
               <ThemeToggle />
             </div>
           </div>
@@ -137,6 +150,7 @@ export function AppShell() {
                 {view === "loans" && <LoansView />}
                 {view === "payments" && <PaymentsView />}
                 {view === "reports" && <ReportsView />}
+                {view === "admin" && session?.user.role === "super_admin" && <AdminView />}
               </motion.div>
             </AnimatePresence>
           </div>

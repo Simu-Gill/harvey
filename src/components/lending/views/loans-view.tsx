@@ -121,7 +121,7 @@ export function LoansView() {
   return (
     <div className="space-y-5">
       {/* status KPIs */}
-      <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {(Object.keys(STATUS_META) as LoanStatus[]).map((s) => {
           const meta = STATUS_META[s];
           const Icon = meta.icon;
@@ -131,7 +131,7 @@ export function LoansView() {
               onClick={() => setTab(tab === s ? "all" : s)}
               aria-pressed={tab === s}
               className={cn(
-                "card-lux accent-top group relative overflow-hidden rounded-xl border bg-card p-4 text-left transition-all duration-200",
+                "card-lux accent-top group relative min-w-0 overflow-hidden rounded-xl border bg-card p-3.5 text-left transition-all duration-200",
                 "hover:-translate-y-0.5 hover:border-ring/40",
                 tab === s && "border-emerald-500/40 ring-2 ring-emerald-500/20"
               )}
@@ -166,60 +166,59 @@ export function LoansView() {
         })}
       </div>
 
-      <Card className="card-lux overflow-hidden">
-        <div className="flex flex-col gap-3 border-b p-4 lg:flex-row lg:items-center">
-          {/* segmented filter */}
-          <div className="-mx-1 overflow-x-auto px-1 pb-0.5 scrollbar-slim">
-            <div
-              role="tablist"
-              aria-label="Filter loans by status"
-              className="inline-flex items-center gap-1 rounded-full border bg-muted/50 p-1"
-            >
-              {TABS.map(([value, label]) => {
-                const active = tab === value;
-                return (
-                  <button
-                    key={value}
-                    role="tab"
-                    aria-selected={active}
-                    onClick={() => setTab(value)}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium whitespace-nowrap transition-all duration-150",
-                      "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/60",
-                      active
-                        ? "bg-card text-emerald-800 shadow-sm ring-1 ring-emerald-600/20 dark:text-emerald-300 dark:ring-emerald-400/25"
-                        : "text-muted-foreground hover:text-foreground"
-                    )}
-                  >
-                    {label}
-                    <span
+      <Card className="card-lux gap-0 overflow-hidden py-0">
+        <div className="relative overflow-hidden border-b border-emerald-200/70 bg-gradient-to-r from-emerald-100 via-teal-50 to-amber-100/80 p-4 dark:border-emerald-500/20 dark:from-emerald-500/[0.16] dark:via-teal-500/[0.1] dark:to-amber-500/[0.09]">
+          <div aria-hidden className="pointer-events-none absolute -top-16 left-24 size-40 rounded-full bg-emerald-300/15 blur-3xl dark:bg-emerald-400/[0.06]" />
+          <div className="relative space-y-3.5">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex min-w-0 items-center gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+                  <Landmark className="size-[18px]" aria-hidden />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-[9.5px] font-semibold tracking-[0.16em] text-emerald-700 uppercase dark:text-emerald-400">Lending book</p>
+                  <h2 className="font-display text-[17px] font-semibold leading-tight tracking-tight">Loan portfolio</h2>
+                  <p className="mt-0.5 text-[11.5px] text-muted-foreground">{rows.length} records match the current view</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 lg:translate-y-2">
+                <div className="relative min-w-0 flex-1 sm:w-[280px] sm:flex-none">
+                  <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-emerald-700/60 dark:text-emerald-400/70" />
+                  <Input
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Search client or reference…"
+                    className="h-10 border-emerald-300/80 bg-emerald-50/90 pl-9 shadow-sm dark:border-emerald-500/25 dark:bg-emerald-950/35"
+                    aria-label="Search loans"
+                  />
+                </div>
+                <Button className="h-10 gap-1.5 font-medium shadow-sm" onClick={() => openLoanDialog()}>
+                  <Plus className="size-4" /> New Loan
+                </Button>
+              </div>
+            </div>
+            <div className="-mx-1 overflow-x-auto px-1 pb-0.5 scrollbar-slim">
+              <div role="tablist" aria-label="Filter loans by status" className="inline-flex items-center gap-1 rounded-xl border border-slate-300/80 bg-slate-200/80 p-1 shadow-sm dark:border-slate-500/30 dark:bg-slate-900/45">
+                {TABS.map(([value, label]) => {
+                  const active = tab === value;
+                  return (
+                    <button key={value} role="tab" aria-selected={active} onClick={() => setTab(value)} className={cn(
+                      "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12px] font-medium whitespace-nowrap transition-all duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500/60",
+                      active ? "border border-emerald-800/20 bg-emerald-700 text-white shadow-sm dark:bg-emerald-500 dark:text-emerald-950" : "border border-slate-300/80 bg-white/85 text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-900 dark:border-slate-600/40 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-emerald-500/30 dark:hover:bg-emerald-500/10 dark:hover:text-emerald-100"
+                    )}>
+                      {label}
+                      <span
                       className={cn(
-                        "rounded-full px-1.5 py-px text-[10.5px] font-semibold tabular-nums",
-                        active
-                          ? "bg-emerald-600/10 text-emerald-700 dark:bg-emerald-400/15 dark:text-emerald-300"
-                          : "bg-muted text-muted-foreground"
+                        "rounded-full px-1.5 py-px text-[10px] font-semibold tabular-nums",
+                        active ? "bg-white/20 text-white dark:bg-emerald-950/20 dark:text-emerald-950" : "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200"
                       )}
-                    >
-                      {counts[value]}
-                    </span>
-                  </button>
-                );
-              })}
+                      >{counts[value]}</span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-          <div className="relative flex-1 lg:max-w-xs">
-            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search client or reference…"
-              className="pl-9"
-              aria-label="Search loans"
-            />
-          </div>
-          <Button className="gap-1.5 font-medium" onClick={() => openLoanDialog()}>
-            <Plus className="size-4" /> New Loan
-          </Button>
         </div>
 
         <CardContent className="p-0">

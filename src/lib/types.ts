@@ -26,7 +26,7 @@ export const methodLabel = (m: string): string =>
 export interface LoanCore {
   principal: number;
   interestRate: number;
-  rateUnit: RateUnit;
+  rateUnit: string;
   termMonths: number;
   startDate: string | Date;
 }
@@ -82,6 +82,7 @@ export interface ClientDTO {
   idNumber: string | null;
   occupation: string | null;
   notes: string | null;
+  partners: { id: string; name: string }[];
   createdAt: string;
   // computed
   loanCount: number;
@@ -92,6 +93,26 @@ export interface ClientDTO {
   interestPaidToDate: number;
   lastPaymentAt: string | null;
   health: "on_track" | "behind" | "overdue" | "clean";
+}
+
+export interface PartnerDTO {
+  id: string;
+  name: string;
+  contactNumber: string | null;
+  active: boolean;
+  clientCount: number;
+  userCount: number;
+}
+
+export interface UserDTO {
+  id: string;
+  name: string;
+  username: string;
+  role: "super_admin" | "owner" | "partner";
+  profileImage: string | null;
+  active: boolean;
+  partnerId: string | null;
+  partnerName: string | null;
 }
 
 export interface PaymentDTO {

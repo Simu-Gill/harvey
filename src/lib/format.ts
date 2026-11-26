@@ -12,6 +12,7 @@ const CURRENCY_SYMBOLS: Record<string, string> = {
   PHP: "₱",
   CAD: "C$",
   AUD: "A$",
+  MYR: "RM",
 };
 
 export const currencySymbol = (code: string): string =>
@@ -20,7 +21,7 @@ export const currencySymbol = (code: string): string =>
 /** Full money format, e.g. $12,450.00 */
 export function fmtMoney(
   n: number | null | undefined,
-  currency = "USD",
+  currency = "MYR",
   opts?: { compact?: boolean; cents?: boolean }
 ): string {
   if (n == null || !Number.isFinite(n)) n = 0;
@@ -38,7 +39,7 @@ export function fmtMoney(
 }
 
 /** Compact axis format, e.g. $12k */
-export function fmtAxis(n: number, currency = "USD"): string {
+export function fmtAxis(n: number, currency = "MYR"): string {
   const sym = currencySymbol(currency);
   if (Math.abs(n) >= 1000) return `${sym}${Math.round(n / 1000)}k`;
   return `${sym}${n}`;

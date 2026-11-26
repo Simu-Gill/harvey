@@ -33,6 +33,14 @@ const AGING_COLORS = [
   "#7f1d1d",
 ];
 
+const CONCENTRATION_TONES = [
+  "border-l-rose-600 bg-rose-100/95 dark:border-l-rose-400 dark:bg-rose-500/[0.16]",
+  "border-l-rose-500 bg-rose-100/75 dark:border-l-rose-400/80 dark:bg-rose-500/[0.12]",
+  "border-l-rose-400 bg-rose-50 dark:border-l-rose-400/60 dark:bg-rose-500/[0.09]",
+  "border-l-slate-400 bg-slate-100/95 dark:border-l-slate-500 dark:bg-slate-800/70",
+  "border-l-slate-300 bg-slate-100/75 dark:border-l-slate-600 dark:bg-slate-800/50",
+];
+
 export function ReportsView() {
   const { data, isLoading } = useReports();
   const currency = useCurrency();
@@ -151,10 +159,10 @@ export function ReportsView() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 items-stretch gap-4 lg:grid-cols-2">
         {/* aging */}
-        <Card className="card-lux">
-          <CardHeader>
+        <Card className="card-lux flex h-[410px] flex-col gap-0 overflow-hidden py-0">
+          <CardHeader className="shrink-0 border-b border-emerald-100/80 py-5">
             <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
               Risk
             </p>
@@ -163,10 +171,10 @@ export function ReportsView() {
               Outstanding balance by how far past maturity
             </p>
           </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
+          <CardContent className="min-h-0 flex-1 py-4">
+            <ul className="grid h-full grid-rows-5 gap-2.5">
               {aging.map((a, i) => (
-                <li key={a.bucket}>
+                <li key={a.bucket} className="flex min-h-0 flex-col justify-center rounded-lg border border-emerald-100/90 bg-gradient-to-r from-emerald-50/75 to-transparent px-3 py-2 dark:border-emerald-500/15 dark:from-emerald-500/[0.06]">
                   <div className="flex items-baseline justify-between text-[13px]">
                     <span className={cn("font-medium", i >= 3 && a.balance > 0 && "text-red-600 dark:text-red-400")}>
                       {a.bucket}
@@ -178,7 +186,7 @@ export function ReportsView() {
                       <Money value={a.balance} />
                     </span>
                   </div>
-                  <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-muted">
+                  <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-muted">
                     <div
                       className="h-full rounded-full"
                       style={{
@@ -194,8 +202,8 @@ export function ReportsView() {
         </Card>
 
         {/* concentration */}
-        <Card className="card-lux">
-          <CardHeader>
+        <Card className="card-lux flex h-[410px] flex-col gap-0 overflow-hidden py-0">
+          <CardHeader className="shrink-0 border-b border-emerald-100/80 py-5">
             <p className="text-[10px] font-semibold tracking-[0.12em] text-emerald-700 uppercase dark:text-emerald-400">
               Concentration
             </p>
@@ -204,25 +212,31 @@ export function ReportsView() {
               Largest outstanding balances — click to open client
             </p>
           </CardHeader>
-          <CardContent className="px-0 pb-0">
+          <CardContent className="min-h-0 flex-1 px-0 pb-0">
             {topClients.length === 0 ? (
               <EmptyState icon={BarChart3} title="Nothing outstanding" description="Every loan in the book is fully settled." />
             ) : (
-              <ul className="divide-y border-t">
+              <ul className="h-full divide-y divide-rose-200/70 overflow-y-auto bg-slate-100/50 scrollbar-slim dark:divide-rose-500/15 dark:bg-slate-900/20">
                 {topClients.map((c, i) => (
-                  <li key={c.clientId}>
+                  <li
+                    key={c.clientId}
+                    className={cn(
+                      "border-l-4",
+                      CONCENTRATION_TONES[Math.min(i, CONCENTRATION_TONES.length - 1)]
+                    )}
+                  >
                     <button
                       onClick={() => openClient(c.clientId)}
-                      className="flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-muted/50"
+                      className="flex min-h-[58px] w-full items-center gap-3 px-5 py-2.5 text-left transition-colors hover:bg-rose-200/55 dark:hover:bg-rose-500/[0.18]"
                     >
                       <span className="w-5 text-center text-[12px] font-semibold text-muted-foreground tabular-nums">
                         {i + 1}
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[13.5px] font-medium">{c.name}</p>
-                        <div className="mt-1 h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-muted">
+                        <div className="mt-1 h-1.5 w-full max-w-[220px] overflow-hidden rounded-full bg-white/80 shadow-inner dark:bg-slate-950/35">
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500"
+                            className="h-full rounded-full bg-gradient-to-r from-rose-600 to-rose-400"
                             style={{ width: `${Math.round(c.share * 100)}%` }}
                           />
                         </div>

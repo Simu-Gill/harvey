@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getDashboard } from "@/lib/loan-service";
+import { getAuthUser } from "@/lib/auth";
 
 export async function GET() {
   try {
-    const data = await getDashboard();
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const data = await getDashboard(user.role === "partner" ? user.partnerId ?? undefined : undefined);
     return NextResponse.json(data);
   } catch (e) {
     console.error("GET /api/dashboard", e);

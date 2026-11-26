@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getPayments, recomputeLoanAllocations, loanToDTO } from "@/lib/loan-service";
 import { allocatePayment } from "@/lib/loan-math";
+import { getAuthUser } from "@/lib/auth";
 
 const paymentSchema = z.object({
   loanId: z.string().min(1, "Select a loan"),
@@ -15,11 +16,14 @@ const paymentSchema = z.object({
 
 export async function GET(req: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const loanId = req.nextUrl.searchParams.get("loanId") ?? undefined;
     const limitParam = req.nextUrl.searchParams.get("limit");
     const payments = await getPayments({
       loanId,
       limit: limitParam ? Number(limitParam) : undefined,
+      partnerId: user.role === "partner" ? user.partnerId ?? undefined : undefined,
     });
     return NextResponse.json(payments);
   } catch (e) {
@@ -30,6 +34,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await getAuthUser();
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const body = await req.json();
     const parsed = paymentSchema.safeParse(body);
     if (!parsed.success) {
@@ -39,8 +45,8 @@ export async function POST(req: NextRequest) {
       );
     }
     const d = parsed.data;
-    const loan = await db.loan.findUnique({
-      where: { id: d.loanId },
+    const loan = await db.loan.findFirst({
+      where: { id: d.loanId, ...(user.role === "partner" ? { client: { partners: { some: { id: user.partnerId! } } } } : {}) },
       include: { payments: true, client: true },
     });
     if (!loan) return NextResponse.json({ error: "Loan not found" }, { status: 400 });
@@ -51,7 +57,18 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate against the remaining balance and derive the split
-    const alloc = allocatePayment(loan, loan.payments, d.amount, date);
+    const mathLoan = {
+      ...loan,
+      principal: Number(loan.principal),
+      interestRate: Number(loan.interestRate),
+    };
+    const mathPayments = loan.payments.map((payment) => ({
+      ...payment,
+      amount: Number(payment.amount),
+      interestPart: Number(payment.interestPart),
+      principalPart: Number(payment.principalPart),
+    }));
+    const alloc = allocatePayment(mathLoan, mathPayments, d.amount, date);
     if (d.amount > alloc.balanceBefore + 0.005) {
       return NextResponse.json(
         {
@@ -70,7 +87,8 @@ export async function POST(req: NextRequest) {
         date,
         method: d.method,
         note: d.note || null,
-        recordedBy: d.recordedBy?.trim() || null,
+        recordedBy: user.name ?? d.recordedBy?.trim() ?? null,
+        createdByUserId: user.id,
       },
     });
 

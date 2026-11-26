@@ -1,0 +1,113 @@
+// Production schema for Hostinger Cloud (MySQL/MariaDB).
+// Local development continues to use prisma/schema.prisma with SQLite.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id         String    @id @default(cuid())
+  name       String
+  phone      String?
+  email      String?
+  address    String?
+  idNumber   String?
+  occupation String?
+  notes      String?   @db.Text
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  loans      Loan[]
+  partners   Partner[]
+}
+
+model Partner {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  contactNumber String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  clients       Client[]
+  users         User[]
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String
+  username        String    @unique
+  passwordHash    String
+  role            String
+  profileImage    String?   @db.LongText
+  active          Boolean   @default(true)
+  partnerId       String?
+  partner         Partner?  @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  createdLoans    Loan[]    @relation("LoansCreated")
+  createdPayments Payment[] @relation("PaymentsCreated")
+
+  @@index([partnerId])
+}
+
+model Loan {
+  id           String    @id @default(cuid())
+  reference    String    @unique
+  clientId     String
+  client       Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  principal    Decimal   @db.Decimal(15, 2)
+  interestRate Decimal   @db.Decimal(8, 4)
+  rateUnit     String
+  termMonths   Int
+  startDate    DateTime
+  notes        String?   @db.Text
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  payments     Payment[]
+  createdById  String?
+  createdBy    User?     @relation("LoansCreated", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@index([createdById])
+  @@index([startDate])
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  loanId          String
+  loan            Loan     @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  amount          Decimal  @db.Decimal(15, 2)
+  interestPart    Decimal  @default(0) @db.Decimal(15, 2)
+  principalPart   Decimal  @default(0) @db.Decimal(15, 2)
+  date            DateTime
+  method          String
+  note            String?  @db.Text
+  recordedBy      String?
+  createdByUserId String?
+  createdByUser   User?    @relation("PaymentsCreated", fields: [createdByUserId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+
+  @@index([loanId, date])
+  @@index([date])
+  @@index([createdByUserId])
+}
+
+model Setting {
+  id           String   @id @default("singleton")
+  businessName String   @default("Harvey Enterprise")
+  tagline      String   @default("Loan management, clearly organized")
+  licence      String   @default("")
+  email        String   @default("")
+  phone        String   @default("")
+  address      String   @default("")
+  currency     String   @default("MYR")
+  defaultRate  Decimal  @default(10) @db.Decimal(8, 4)
+  rateUnit     String   @default("monthly")
+  defaultTerm  Int      @default(3)
+  updatedAt    DateTime @updatedAt
+}

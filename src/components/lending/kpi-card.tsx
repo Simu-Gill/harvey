@@ -50,7 +50,7 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        "card-lux accent-top group relative overflow-hidden rounded-xl border bg-card p-5",
+        "card-lux accent-top group relative min-w-0 overflow-hidden rounded-xl border bg-card p-4",
         "transition-all duration-200 ease-out",
         "hover:-translate-y-0.5 hover:border-ring/40",
         t.glow
@@ -60,36 +60,36 @@ export function KpiCard({
       <Icon
         aria-hidden
         className={cn(
-          "pointer-events-none absolute -right-3 -bottom-4 size-24 rotate-[-8deg] transition-transform duration-300 group-hover:rotate-0 group-hover:scale-105",
+          "pointer-events-none absolute -right-3 -bottom-4 size-20 rotate-[-8deg] transition-transform duration-300 group-hover:rotate-0 group-hover:scale-105",
           t.mark
         )}
         strokeWidth={1.5}
       />
 
       <div className="relative flex items-start justify-between gap-3">
-        <p className="mt-1.5 text-[10.5px] font-semibold tracking-[0.1em] text-muted-foreground uppercase">
+        <p className="mt-1 text-[10px] font-semibold tracking-[0.09em] text-muted-foreground uppercase">
           {label}
         </p>
         <span
           aria-hidden
           className={cn(
-            "inline-flex size-10 items-center justify-center rounded-xl transition-transform duration-200 group-hover:scale-105",
+            "inline-flex size-9 items-center justify-center rounded-lg transition-transform duration-200 group-hover:scale-105",
             t.tile
           )}
         >
-          <Icon className="size-[19px]" strokeWidth={2.2} />
+          <Icon className="size-[17px]" strokeWidth={2.2} />
         </span>
       </div>
       <p
         className={cn(
-          "relative mt-3 font-display text-[28px] leading-none font-semibold tracking-tight",
+          "relative mt-2.5 font-display text-[24px] leading-none font-semibold tracking-tight",
           valueClassName
         )}
       >
         <Money value={value} />
       </p>
       {sub ? (
-        <div className="relative mt-2 text-[12.5px] text-muted-foreground">{sub}</div>
+        <div className="relative mt-1.5 text-[11.5px] leading-snug text-muted-foreground">{sub}</div>
       ) : null}
     </div>
   );

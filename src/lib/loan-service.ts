@@ -27,11 +27,35 @@ import type {
   RateUnit,
   ReportsDTO,
   SettingsDTO,
+  LoanCore,
+  PaymentLike,
 } from "./types";
 import type { Client, Loan, Payment, Setting } from "@prisma/client";
 
 type LoanWithPayments = Loan & { payments: Payment[]; client?: Client | null };
 type PaymentWithLoan = Payment & { loan: Loan & { client?: Client | null } };
+
+// SQLite returns numeric columns as numbers while MySQL Decimal columns are
+// Prisma Decimal objects. Normalize at the service boundary so all business
+// math and API DTOs consistently use JavaScript numbers.
+const numeric = (value: unknown): number => Number(value);
+
+function normalizeLoan<T extends Loan>(loan: T): T & LoanCore {
+  return {
+    ...loan,
+    principal: numeric(loan.principal),
+    interestRate: numeric(loan.interestRate),
+  } as T & LoanCore;
+}
+
+function normalizePayment<T extends Payment>(payment: T): T & PaymentLike {
+  return {
+    ...payment,
+    amount: numeric(payment.amount),
+    interestPart: numeric(payment.interestPart),
+    principalPart: numeric(payment.principalPart),
+  } as T & PaymentLike;
+}
 
 // ── Settings ────────────────────────────────────────────────────────
 export async function getSettings(): Promise<SettingsDTO> {
@@ -47,7 +71,7 @@ export async function getSettings(): Promise<SettingsDTO> {
     phone: s.phone,
     address: s.address,
     currency: s.currency,
-    defaultRate: s.defaultRate,
+    defaultRate: numeric(s.defaultRate),
     rateUnit: s.rateUnit as RateUnit,
     defaultTerm: s.defaultTerm,
   };
@@ -55,26 +79,28 @@ export async function getSettings(): Promise<SettingsDTO> {
 
 // ── Loans ───────────────────────────────────────────────────────────
 export function loanToDTO(loan: LoanWithPayments, at: Date = new Date()): LoanDTO {
-  const snap = loanSnapshot(loan, loan.payments, at);
+  const normalized = normalizeLoan(loan);
+  const payments = loan.payments.map(normalizePayment);
+  const snap = loanSnapshot(normalized, payments, at);
   return {
     id: loan.id,
     reference: loan.reference,
     clientId: loan.clientId,
     clientName: loan.client?.name ?? "",
-    principal: loan.principal,
-    interestRate: loan.interestRate,
+    principal: normalized.principal,
+    interestRate: normalized.interestRate,
     rateUnit: loan.rateUnit as RateUnit,
     termMonths: loan.termMonths,
     startDate: loan.startDate.toISOString(),
-    maturityDate: maturityDateOf(loan).toISOString(),
+    maturityDate: maturityDateOf(normalized).toISOString(),
     notes: loan.notes,
     createdAt: loan.createdAt.toISOString(),
-    totalInterest: totalInterestOf(loan),
-    totalDue: totalDueOf(loan),
-    monthlyInstallment: installmentOf(loan),
-    monthlyInterest: monthlyInterestOf(loan),
-    monthsElapsed: monthsElapsedOf(loan, at),
-    expectedToDate: expectedToDateOf(loan, at),
+    totalInterest: totalInterestOf(normalized),
+    totalDue: totalDueOf(normalized),
+    monthlyInstallment: installmentOf(normalized),
+    monthlyInterest: monthlyInterestOf(normalized),
+    monthsElapsed: monthsElapsedOf(normalized, at),
+    expectedToDate: expectedToDateOf(normalized, at),
     paidTotal: snap.paidTotal,
     interestPaid: snap.interestPaid,
     principalPaid: snap.principalPaid,
@@ -90,23 +116,24 @@ export function loanToDTO(loan: LoanWithPayments, at: Date = new Date()): LoanDT
   };
 }
 
-export async function getLoans(): Promise<LoanDTO[]> {
+export async function getLoans(partnerId?: string): Promise<LoanDTO[]> {
   const loans = await db.loan.findMany({
+    where: partnerId ? { client: { partners: { some: { id: partnerId } } } } : undefined,
     include: { client: true, payments: true },
     orderBy: { startDate: "desc" },
   });
   return loans.map((l) => loanToDTO(l));
 }
 
-export async function getLoanDetail(id: string) {
-  const loan = await db.loan.findUnique({
-    where: { id },
+export async function getLoanDetail(id: string, partnerId?: string) {
+  const loan = await db.loan.findFirst({
+    where: { id, ...(partnerId ? { client: { partners: { some: { id: partnerId } } } } : {}) },
     include: { client: true, payments: { orderBy: { date: "asc" } } },
   });
   if (!loan) return null;
   return {
     loan: loanToDTO(loan),
-    schedule: buildSchedule(loan).map((r) => ({
+    schedule: buildSchedule(normalizeLoan(loan)).map((r) => ({
       month: r.month,
       dueDate: r.dueDate.toISOString(),
       expectedPayment: r.expectedPayment,
@@ -126,9 +153,9 @@ export function paymentToDTO(p: PaymentWithLoan): PaymentDTO {
     loanReference: p.loan.reference,
     clientId: p.loan.clientId,
     clientName: p.loan.client?.name ?? "",
-    amount: p.amount,
-    interestPart: p.interestPart,
-    principalPart: p.principalPart,
+    amount: numeric(p.amount),
+    interestPart: numeric(p.interestPart),
+    principalPart: numeric(p.principalPart),
     date: p.date.toISOString(),
     method: p.method,
     note: p.note,
@@ -140,9 +167,13 @@ export function paymentToDTO(p: PaymentWithLoan): PaymentDTO {
 export async function getPayments(opts?: {
   loanId?: string;
   limit?: number;
+  partnerId?: string;
 }): Promise<PaymentDTO[]> {
   const rows = await db.payment.findMany({
-    where: opts?.loanId ? { loanId: opts.loanId } : undefined,
+    where: {
+      ...(opts?.loanId ? { loanId: opts.loanId } : {}),
+      ...(opts?.partnerId ? { loan: { client: { partners: { some: { id: opts.partnerId } } } } } : {}),
+    },
     include: { loan: { include: { client: true } } },
     orderBy: [{ date: "desc" }, { createdAt: "desc" }],
     ...(opts?.limit ? { take: opts.limit } : {}),
@@ -163,11 +194,12 @@ export async function recomputeLoanAllocations(loanId: string) {
     (a, b) => a.date.getTime() - b.date.getTime() || a.createdAt.getTime() - b.createdAt.getTime()
   );
   const prior: { interestPart: number; principalPart: number }[] = [];
+  const normalizedLoan = normalizeLoan(loan);
   for (const p of ordered) {
-    const alloc = allocatePayment(loan, prior, p.amount, p.date);
+    const alloc = allocatePayment(normalizedLoan, prior, numeric(p.amount), p.date);
     if (
-      alloc.interestPart !== p.interestPart ||
-      alloc.principalPart !== p.principalPart
+      alloc.interestPart !== numeric(p.interestPart) ||
+      alloc.principalPart !== numeric(p.principalPart)
     ) {
       await db.payment.update({
         where: { id: p.id },
@@ -179,9 +211,16 @@ export async function recomputeLoanAllocations(loanId: string) {
 }
 
 // ── Clients ─────────────────────────────────────────────────────────
-export async function getClients(): Promise<ClientDTO[]> {
-  const clients = await db.client.findMany({ orderBy: { name: "asc" } });
-  const loans = await db.loan.findMany({ include: { payments: true } });
+export async function getClients(partnerId?: string): Promise<ClientDTO[]> {
+  const clients = await db.client.findMany({
+    where: partnerId ? { partners: { some: { id: partnerId } } } : undefined,
+    include: { partners: { select: { id: true, name: true } } },
+    orderBy: { name: "asc" },
+  });
+  const loans = await db.loan.findMany({
+    where: partnerId ? { client: { partners: { some: { id: partnerId } } } } : undefined,
+    include: { payments: true },
+  });
   const byClient = new Map<string, LoanWithPayments[]>();
   for (const l of loans) {
     const arr = byClient.get(l.clientId) ?? [];
@@ -203,7 +242,7 @@ export async function getClients(): Promise<ClientDTO[]> {
     let worst = 0;
     for (const l of list) {
       const dto = loanToDTO(l, now);
-      borrowed += l.principal;
+      borrowed += numeric(l.principal);
       interestPaid += dto.interestPaid;
       if (dto.status === "completed") completed++;
       else {
@@ -227,6 +266,7 @@ export async function getClients(): Promise<ClientDTO[]> {
       idNumber: c.idNumber,
       occupation: c.occupation,
       notes: c.notes,
+      partners: c.partners,
       createdAt: c.createdAt.toISOString(),
       loanCount: list.length,
       activeLoanCount: active,
@@ -240,8 +280,10 @@ export async function getClients(): Promise<ClientDTO[]> {
   });
 }
 
-export async function getClientDetail(id: string) {
-  const client = await db.client.findUnique({ where: { id } });
+export async function getClientDetail(id: string, partnerId?: string) {
+  const client = await db.client.findFirst({
+    where: { id, ...(partnerId ? { partners: { some: { id: partnerId } } } : {}) },
+  });
   if (!client) return null;
   const loans = await db.loan.findMany({
     where: { clientId: id },
@@ -254,14 +296,14 @@ export async function getClientDetail(id: string) {
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .map(paymentToDTO);
 
-  const all = await getClients();
+  const all = await getClients(partnerId);
   const summary = all.find((c) => c.id === id)!;
   return { client: summary, loans: loanDTOs, payments };
 }
 
 // ── Dashboard ───────────────────────────────────────────────────────
 function monthSeries(points: number): { key: string; label: string; start: Date }[] {
-  const out = [];
+  const out: { key: string; label: string; start: Date }[] = [];
   for (let i = points - 1; i >= 0; i--) {
     const d = subMonths(new Date(), i);
     out.push({ key: format(d, "yyyy-MM"), label: format(d, "MMM"), start: startOfMonth(d) });
@@ -269,11 +311,12 @@ function monthSeries(points: number): { key: string; label: string; start: Date 
   return out;
 }
 
-export async function getDashboard(): Promise<DashboardDTO> {
+export async function getDashboard(partnerId?: string): Promise<DashboardDTO> {
   const now = new Date();
-  const loans = await db.loan.findMany({ include: { client: true, payments: true } });
+  const loanWhere = partnerId ? { client: { partners: { some: { id: partnerId } } } } : undefined;
+  const loans = await db.loan.findMany({ where: loanWhere, include: { client: true, payments: true } });
   const dtos = loans.map((l) => loanToDTO(l, now));
-  const recent = await getPayments({ limit: 20 });
+  const recent = await getPayments({ limit: 20, partnerId });
 
   const active = dtos.filter((l) => l.status !== "completed");
   const overdue = dtos.filter((l) => l.status === "overdue");
@@ -287,7 +330,7 @@ export async function getDashboard(): Promise<DashboardDTO> {
   const portfolioBalance = round2(outstandingPrincipal + outstandingInterest);
 
   // month collections
-  const allPayments = await db.payment.findMany({});
+  const allPayments = await db.payment.findMany({ where: partnerId ? { loan: { client: { partners: { some: { id: partnerId } } } } } : undefined });
   const thisMonth = allPayments.filter((p) => isSameMonth(p.date, now));
   const lastMonthDate = subMonths(now, 1);
   const lastMonth = allPayments.filter((p) => isSameMonth(p.date, lastMonthDate));
@@ -315,9 +358,9 @@ export async function getDashboard(): Promise<DashboardDTO> {
     return {
       key: m.key,
       label: m.label,
-      collected: mSum(pays, (p) => p.amount),
-      interest: mSum(pays, (p) => p.interestPart),
-      principal: mSum(pays, (p) => p.principalPart),
+      collected: mSum(pays, (p) => numeric(p.amount)),
+      interest: mSum(pays, (p) => numeric(p.interestPart)),
+      principal: mSum(pays, (p) => numeric(p.principalPart)),
       disbursed: sum(disb, (l) => l.principal),
       newLoans: disb.length,
       paymentsCount: pays.length,
@@ -330,15 +373,13 @@ export async function getDashboard(): Promise<DashboardDTO> {
     return { status, count: arr.length, balance: sum(arr, (l) => l.balance) };
   });
 
-  const attention = [...overdue, ...behind]
-    .sort((a, b) => {
+  const attention = [...overdue, ...behind].sort((a, b) => {
       if (a.status === b.status) return a.variance - b.variance;
       return b.daysOverdue - a.daysOverdue;
-    })
-    .slice(0, 6);
+    });
 
   const clientsWithActive = new Set(active.map((l) => l.clientId)).size;
-  const totalClients = await db.client.count();
+  const totalClients = await db.client.count({ where: partnerId ? { partners: { some: { id: partnerId } } } : undefined });
 
   return {
     kpis: {
@@ -346,10 +387,10 @@ export async function getDashboard(): Promise<DashboardDTO> {
       outstandingPrincipal,
       outstandingInterest,
       portfolioBalance,
-      collectedThisMonth: mSum(thisMonth, (p) => p.amount),
-      collectedLastMonth: mSum(lastMonth, (p) => p.amount),
-      interestThisMonth: mSum(thisMonth, (p) => p.interestPart),
-      principalThisMonth: mSum(thisMonth, (p) => p.principalPart),
+      collectedThisMonth: mSum(thisMonth, (p) => numeric(p.amount)),
+      collectedLastMonth: mSum(lastMonth, (p) => numeric(p.amount)),
+      interestThisMonth: mSum(thisMonth, (p) => numeric(p.interestPart)),
+      principalThisMonth: mSum(thisMonth, (p) => numeric(p.principalPart)),
       overdueCount: overdue.length,
       overdueBalance: sum(overdue, (l) => l.balance),
       behindCount: behind.length,
@@ -369,11 +410,11 @@ export async function getDashboard(): Promise<DashboardDTO> {
 }
 
 // ── Reports ─────────────────────────────────────────────────────────
-export async function getReports(): Promise<ReportsDTO> {
+export async function getReports(partnerId?: string): Promise<ReportsDTO> {
   const now = new Date();
-  const loans = await db.loan.findMany({ include: { client: true, payments: true } });
+  const loans = await db.loan.findMany({ where: partnerId ? { client: { partners: { some: { id: partnerId } } } } : undefined, include: { client: true, payments: true } });
   const dtos = loans.map((l) => loanToDTO(l, now));
-  const allPayments = await db.payment.findMany({});
+  const allPayments = await db.payment.findMany({ where: partnerId ? { loan: { client: { partners: { some: { id: partnerId } } } } } : undefined });
 
   const monthly = monthSeries(12).map((m) => {
     const pays = allPayments.filter((p) => format(p.date, "yyyy-MM") === m.key);
@@ -382,9 +423,9 @@ export async function getReports(): Promise<ReportsDTO> {
     return {
       key: m.key,
       label: m.label,
-      collected: rSum((p) => p.amount),
-      interest: rSum((p) => p.interestPart),
-      principal: rSum((p) => p.principalPart),
+      collected: rSum((p) => numeric(p.amount)),
+      interest: rSum((p) => numeric(p.interestPart)),
+      principal: rSum((p) => numeric(p.principalPart)),
       disbursed: round2(disb.reduce((s, l) => s + l.principal, 0)),
       newLoans: disb.length,
       paymentsCount: pays.length,
@@ -427,8 +468,7 @@ export async function getReports(): Promise<ReportsDTO> {
       loanCount: e.loanCount,
       share: totalOutstanding > 0 ? e.outstanding / totalOutstanding : 0,
     }))
-    .sort((a, b) => b.outstanding - a.outstanding)
-    .slice(0, 6);
+    .sort((a, b) => b.outstanding - a.outstanding);
 
   const principalOutstanding = round2(
     active.reduce((s, l) => s + l.outstandingPrincipal, 0)
